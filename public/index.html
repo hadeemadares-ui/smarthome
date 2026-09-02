@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Home Hub - ระบบสมาร์ทโฮมส่วนตัว (Offline 100%)</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3B82F6">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-house-signal"></i>
+      </div>
+      <div>
+        <div class="brand-title">Smart Home Hub</div>
+        <div class="brand-subtitle">ระบบสมาร์ทโฮมส่วนตัว (Local Offline)</div>
+      </div>
+    </div>
+
+    <div class="header-badges">
+      <div class="badge badge-offline">
+        <i class="fa-solid fa-shield-cat"></i> Offline 100% (ไร้ Cloud)
+      </div>
+      <button class="theme-toggle-btn" id="themeToggleBtn">
+        <i class="fa-solid fa-moon"></i> โหมดมืด
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Summary Widgets Grid -->
+    <section class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-icon blue">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div>
+          <div class="summary-val" id="totalWatts">0 W</div>
+          <div class="summary-lbl">การใช้พลังงานปัจจุบัน</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon amber">
+          <i class="fa-solid fa-toggle-on"></i>
+        </div>
+        <div>
+          <div class="summary-val" id="activeDevicesCount">0 / 0</div>
+          <div class="summary-lbl">อุปกรณ์ที่เปิดอยู่</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon green">
+          <i class="fa-solid fa-coins"></i>
+        </div>
+        <div>
+          <div class="summary-val" id="dailyBaht">฿0.00</div>
+          <div class="summary-lbl">ประมาณการค่าไฟ/วัน</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-icon purple">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <div class="summary-val" id="securityState">ปลอดภัย</div>
+          <div class="summary-lbl">ระบบความปลอดภัยบ้าน</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Voice Control Section -->
+    <section class="voice-card">
+      <div class="voice-header">
+        <div class="voice-title">
+          <i class="fa-solid fa-microphone-lines" style="color: var(--accent-blue);"></i> สั่งงานด้วยเสียงออฟไลน์ (Local Thai Voice)
+        </div>
+        <span class="badge badge-offline"><i class="fa-solid fa-lock"></i> ประมวลผลในเครื่อง</span>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">
+        พูดคำสั่งภาษาไทย หรือพิมพ์คำสั่ง เช่น <i>"เปิดไฟห้องรับแขก", "ปิดไฟทุกดวง", "เปิดแอร์ 24 องศา", "โหมดเข้านอน"</i>
+      </p>
+      
+      <div class="voice-input-group">
+        <input type="text" id="voiceTextInput" class="voice-text-input" placeholder="พิมพ์คำสั่งสั่งงานบ้าน...">
+        <button class="btn-primary" id="sendVoiceBtn">
+          <i class="fa-solid fa-paper-plane"></i> สั่งงาน
+        </button>
+        <button class="btn-mic" id="micBtn" title="กดเพื่อพูดคำสั่งเสียง">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+      </div>
+
+      <div class="voice-feedback" id="voiceFeedback"></div>
+    </section>
+
+    <!-- Room Selection Tabs -->
+    <section class="room-tabs">
+      <button class="tab-btn active" data-room="all">
+        <i class="fa-solid fa-border-all"></i> อุปกรณ์ทั้งหมด
+      </button>
+      <button class="tab-btn" data-room="living_room">
+        <i class="fa-solid fa-couch"></i> ห้องรับแขก
+      </button>
+      <button class="tab-btn" data-room="bedroom">
+        <i class="fa-solid fa-bed"></i> ห้องนอน
+      </button>
+      <button class="tab-btn" data-room="entrance">
+        <i class="fa-solid fa-door-closed"></i> ประตูหน้าบ้าน
+      </button>
+      <button class="tab-btn" data-room="security">
+        <i class="fa-solid fa-shield"></i> ความปลอดภัย
+      </button>
+    </section>
+
+    <!-- Devices Grid -->
+    <section class="devices-grid" id="devicesContainer">
+      <!-- Device Cards render dynamically via JavaScript -->
+    </section>
+
+    <!-- Automations & Scenes -->
+    <section>
+      <div class="section-title">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-blue);"></i> โหมดอัตโนมัติประจำบ้าน (Local Automations)
+      </div>
+
+      <div class="automations-grid" id="automationsContainer">
+        <!-- Automation rules render dynamically -->
+      </div>
+    </section>
+
+    <!-- Local Network Info Footer -->
+    <footer style="margin-top: 50px; padding: 20px; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-card);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h4 style="font-size: 0.95rem; margin-bottom: 4px;"><i class="fa-solid fa-network-wired"></i> Local Access IP (เข้าใช้งานจากมือถือในบ้าน)</h4>
+          <p id="systemIpList" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted);">
+          Smart Home Private Hub • Local Node Server v24.18
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+[
+  {
+    "id": "rule_night_mode",
+    "name": "โหมดเข้านอน (Night Mode)",
+    "description": "ปิดไฟห้องรับแขก ล็อคประตูหน้าบ้าน และปรับแอร์ห้องนอนที่ 25°C",
+    "enabled": true,
+    "trigger": "manual_or_time",
+    "time": "22:30",
+    "actions": [
+      {
+        "deviceId": "light_living_main",
+        "update": {
+          "state": "off"
+        }
+      },
+      {
+        "deviceId": "light_living_ambient",
+        "update": {
+          "state": "off"
+        }
+      },
+      {
+        "deviceId": "lock_front_door",
+        "update": {
+          "locked": true
+        }
+      },
+      {
+        "deviceId": "ac_bedroom",
+        "update": {
+          "state": "on",
+          "targetTemp": 25
+        }
+      }
+    ]
+  },
+  {
+    "id": "rule_leave_home",
+    "name": "ออกจากบ้าน (Away Mode)",
+    "description": "ปิดไฟทุกดวง ปิดแอร์ทุกเครื่อง และเปิดระบบรักษาความปลอดภัยออฟไลน์",
+    "enabled": true,
+    "trigger": "manual",
+    "actions": [
+      {
+        "deviceId": "light_living_main",
+        "update": {
+          "state": "off"
+        }
+      },
+      {
+        "deviceId": "light_living_ambient",
+        "update": {
+          "state": "off"
+        }
+      },
+      {
+        "deviceId": "light_bedroom_main",
+        "update": {
+          "state": "off"
+        }
+      },
+      {
+        "deviceId": "ac_living",
+        "update": {
+          "state": "off"
+        }
+      },
+      {
+        "deviceId": "ac_bedroom",
+        "update": {
+          "state": "off"
+        }
+      },
+      {
+        "deviceId": "lock_front_door",
+        "update": {
+          "locked": true
+        }
+      },
+      {
+        "deviceId": "security_alarm",
+        "update": {
+          "state": "on",
+          "mode": "armed_away"
+        }
+      }
+    ]
+  },
+  {
+    "id": "rule_auto_light_mmwave",
+    "name": "เปิดไฟอัตโนมัติเมื่อพบการเคลื่อนไหว (mmWave)",
+    "description": "เปิดไฟ LED เมื่อเซนเซอร์ mmWave ตรวจเจอมนุษย์ในห้องรับแขก",
+    "enabled": true,
+    "trigger": "sensor_presence",
+    "actions": [
+      {
+        "deviceId": "light_living_ambient",
+        "update": {
+          "state": "on",
+          "brightness": 60
+        }
+      }
+    ]
+  }
+]

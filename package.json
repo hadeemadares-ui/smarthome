@@ -1,0 +1,13 @@
+{
+  "name": "smarthome-offline-hub",
+  "version": "1.0.0",
+  "description": "Custom Private Local Offline Smart Home Hub & Dashboard",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["smarthome", "offline", "pwa", "privacy"],
+  "author": "Antigravity Smart Home",
+  "license": "MIT"
+}

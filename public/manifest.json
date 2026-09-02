@@ -1,0 +1,22 @@
+{
+  "short_name": "SmartHome",
+  "name": "Smart Home Offline Hub - ระบบสมาร์ทโฮมส่วนตัว",
+  "description": "ระบบควบคุมสมาร์ทโฮมส่วนตัวแบบออฟไลน์ 100% ปลอดภัย ไร้ Cloud",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/192/000000/smart-home.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/000000/smart-home.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0F172A",
+  "theme_color": "#3B82F6",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}

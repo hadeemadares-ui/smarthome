@@ -1,0 +1,94 @@
+[
+  {
+    "id": "light_living_main",
+    "name": "ไฟหลักห้องรับแขก",
+    "room": "living_room",
+    "type": "light",
+    "state": "off",
+    "brightness": 80,
+    "color": "#FFD166",
+    "powerWatts": 15,
+    "icon": "fa-lightbulb"
+  },
+  {
+    "id": "light_living_ambient",
+    "name": "ไฟบรรยากาศ LED",
+    "room": "living_room",
+    "type": "light",
+    "state": "off",
+    "brightness": 50,
+    "color": "#06D6A0",
+    "powerWatts": 8,
+    "icon": "fa-sun"
+  },
+  {
+    "id": "ac_living",
+    "name": "เครื่องปรับอากาศ (AC)",
+    "room": "living_room",
+    "type": "climate",
+    "state": "on",
+    "targetTemp": 24,
+    "currentTemp": 25.5,
+    "mode": "cool",
+    "powerWatts": 850,
+    "icon": "fa-snowflake"
+  },
+  {
+    "id": "sensor_living_presence",
+    "name": "เซนเซอร์ตรวจจับ mmWave",
+    "room": "living_room",
+    "type": "sensor",
+    "presence": true,
+    "lastMotion": "2026-09-02T06:58:47.990Z",
+    "icon": "fa-user-clock"
+  },
+  {
+    "id": "light_bedroom_main",
+    "name": "ไฟห้องนอนหลัก",
+    "room": "bedroom",
+    "type": "light",
+    "state": "off",
+    "brightness": 100,
+    "color": "#FFFFFF",
+    "powerWatts": 12,
+    "icon": "fa-lightbulb"
+  },
+  {
+    "id": "ac_bedroom",
+    "name": "แอร์ห้องนอน",
+    "room": "bedroom",
+    "type": "climate",
+    "state": "off",
+    "targetTemp": 24,
+    "currentTemp": 27,
+    "mode": "cool",
+    "powerWatts": 0,
+    "icon": "fa-snowflake"
+  },
+  {
+    "id": "curtain_bedroom",
+    "name": "ผ้าม่านอัจฉริยะ",
+    "room": "bedroom",
+    "type": "cover",
+    "position": 100,
+    "icon": "fa-blinds"
+  },
+  {
+    "id": "lock_front_door",
+    "name": "ประตูหน้าบ้าน Smart Lock",
+    "room": "entrance",
+    "type": "lock",
+    "locked": true,
+    "battery": 92,
+    "icon": "fa-lock"
+  },
+  {
+    "id": "security_alarm",
+    "name": "ระบบเตือนภัยออฟไลน์ (Alarm)",
+    "room": "security",
+    "type": "switch",
+    "state": "on",
+    "mode": "armed_home",
+    "icon": "fa-shield-halved"
+  }
+]
