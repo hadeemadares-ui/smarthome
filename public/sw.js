@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smarthome-offline-v6';
+const CACHE_NAME = 'smarthome-offline-v7';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
