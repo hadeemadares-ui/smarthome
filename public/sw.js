@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smarthome-offline-v1';
+const CACHE_NAME = 'smarthome-offline-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -8,12 +8,12 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
@@ -28,19 +28,20 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Network first for API, cache first for static resources
   if (event.request.url.includes('/api/')) {
     return;
   }
 
+  // Network First, falling back to cache for instant updates
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).then(response => {
-        return caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, response.clone());
-          return response;
-        });
-      });
-    }).catch(() => caches.match('/index.html'))
+    fetch(event.request)
+      .then(response => {
+        if (response && response.status === 200) {
+          const resClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request).then(cached => cached || caches.match('/index.html')))
   );
 });

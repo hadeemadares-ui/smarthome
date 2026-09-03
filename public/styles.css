@@ -580,4 +580,23 @@ input:checked + .toggle-slider:before {
   .container { padding: 0 14px; }
   .hero-stats { grid-template-columns: 1fr 1fr; }
   .devices-grid { grid-template-columns: 1fr; }
+  
+  .bottom-nav {
+    width: calc(100% - 16px);
+    padding: 6px 4px;
+    bottom: 10px;
+    justify-content: space-between;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .bottom-nav::-webkit-scrollbar { display: none; }
+  
+  .nav-item {
+    padding: 5px 6px;
+    font-size: 0.65rem;
+    flex-shrink: 0;
+  }
+  .nav-item i {
+    font-size: 17px;
+  }
 }
