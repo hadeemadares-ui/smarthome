@@ -649,12 +649,9 @@ function vRemote() {
         <button class="ir-type-btn ${irDeviceType === 'custom' ? 'active' : ''}" data-irtype="custom">⚙️ คัสตอม</button>
       </div>
 
-      <!-- Minimal Brand Selector -->
-      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-glass);">
-        <span style="font-size: 0.8rem; color: #cbd5e1;">ยี่ห้อ (Brand):</span>
-        <select id="irBrandSelect" style="background: rgba(18, 22, 32, 0.9); color: #fff; border: 1px solid var(--accent-indigo); padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; outline: none;">
-          ${getIRBrandOptions(irDeviceType)}
-        </select>
+      <!-- Touch-Friendly Minimal Brand Chips (No Mobile Page Jump) -->
+      <div id="irBrandChipsContainer" class="ir-brand-chips">
+        ${getIRBrandChipsHtml(irDeviceType)}
       </div>
 
       <!-- TV Minimal Controls -->
@@ -747,33 +744,39 @@ function vRemote() {
   `;
 }
 
-function getIRBrandOptions(type) {
-  if (type === 'tv') {
-    return `
-      <option value="samsung">Samsung TV (NEC 38kHz)</option>
-      <option value="lg">LG Smart TV (NEC 38kHz)</option>
-      <option value="sony">Sony TV (12-bit SIRCS)</option>
-      <option value="panasonic">Panasonic TV (38kHz)</option>
-      <option value="tcl">TCL TV</option>
-      <option value="sharp">Sharp TV</option>
-    `;
+function getIRBrandChipsHtml(type) {
+  const brandsMap = {
+    tv: [
+      { id: 'samsung', name: 'Samsung' },
+      { id: 'lg', name: 'LG' },
+      { id: 'sony', name: 'Sony' },
+      { id: 'panasonic', name: 'Panasonic' },
+      { id: 'tcl', name: 'TCL' },
+      { id: 'sharp', name: 'Sharp' }
+    ],
+    ac: [
+      { id: 'daikin', name: 'Daikin' },
+      { id: 'mitsubishi', name: 'Mitsubishi' },
+      { id: 'carrier', name: 'Carrier' },
+      { id: 'haier', name: 'Haier' }
+    ],
+    fan: [
+      { id: 'hatari', name: 'Hatari' },
+      { id: 'mitsubishi', name: 'Mitsubishi' },
+      { id: 'xiaomi', name: 'Xiaomi' }
+    ]
+  };
+
+  const list = brandsMap[type] || [];
+  if (!list.find(x => x.id === irBrand)) {
+    irBrand = list[0]?.id || 'samsung';
   }
-  if (type === 'ac') {
-    return `
-      <option value="daikin">Daikin Air Con</option>
-      <option value="mitsubishi">Mitsubishi Electric</option>
-      <option value="carrier">Carrier Air Con</option>
-      <option value="haier">Haier Air Con</option>
-    `;
-  }
-  if (type === 'fan') {
-    return `
-      <option value="hatari">Hatari Fan (พัดลมฮาตาริ)</option>
-      <option value="mitsubishi">Mitsubishi Fan</option>
-      <option value="xiaomi">Xiaomi Smart Fan</option>
-    `;
-  }
-  return `<option value="custom">กำหนดรหัส IR อิสระ</option>`;
+
+  return list.map(b => `
+    <button class="brand-chip ${irBrand === b.id ? 'active' : ''}" data-brand="${b.id}">
+      ${b.name}
+    </button>
+  `).join('');
 }
 
 function triggerIRSignal(cmdType, hexCodeVal = null) {
@@ -813,6 +816,20 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
   toast(`📡 ยิงคลื่น IR ${hexCode}`);
 }
 
+function bindBrandChips() {
+  document.querySelectorAll('.brand-chip').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.querySelectorAll('.brand-chip').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+      irBrand = btn.dataset.brand;
+      const statusEl = document.getElementById('irStatusText');
+      if (statusEl) statusEl.textContent = `เลือกยี่ห้อ ${irBrand.toUpperCase()} แล้ว (38.0 kHz)`;
+    };
+  });
+}
+
 function bindRemoteEvents() {
   document.querySelectorAll('.remote-segment-btn').forEach(b => {
     b.onclick = () => {
@@ -824,6 +841,8 @@ function bindRemoteEvents() {
       document.getElementById('receiverPanel')?.classList.toggle('hide', myMode !== 'receiver');
     };
   });
+
+  bindBrandChips();
 
   // IR Type Tabs Handler (TV, AC, Fan, Custom)
   document.querySelectorAll('.ir-type-btn').forEach(btn => {
@@ -837,18 +856,13 @@ function bindRemoteEvents() {
       document.getElementById('irFanView')?.classList.toggle('hide', irDeviceType !== 'fan');
       document.getElementById('irCustomView')?.classList.toggle('hide', irDeviceType !== 'custom');
 
-      const brandSelect = document.getElementById('irBrandSelect');
-      if (brandSelect) {
-        brandSelect.innerHTML = getIRBrandOptions(irDeviceType);
-        irBrand = brandSelect.value;
+      const brandContainer = document.getElementById('irBrandChipsContainer');
+      if (brandContainer) {
+        brandContainer.innerHTML = getIRBrandChipsHtml(irDeviceType);
+        bindBrandChips();
       }
     };
   });
-
-  const brandSelect = document.getElementById('irBrandSelect');
-  if (brandSelect) {
-    brandSelect.onchange = () => { irBrand = brandSelect.value; };
-  }
 
   // IR Command Buttons Click Event Handler
   document.querySelectorAll('.ir-cmd-btn').forEach(btn => {

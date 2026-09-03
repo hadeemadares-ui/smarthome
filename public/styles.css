@@ -707,17 +707,34 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
-.ir-brand-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  font-size: 0.75rem;
+.brand-chip {
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
   color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
+.brand-chip.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(56, 189, 248, 0.3));
+  border-color: rgba(99, 102, 241, 0.6);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.ir-brand-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+.ir-brand-chips::-webkit-scrollbar { display: none; }
 
 /* Responsive adjustments */
 @media (max-width: 640px) {
