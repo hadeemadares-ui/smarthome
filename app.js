@@ -132,6 +132,17 @@ function toast(m) {
 const PHONE = { motion: 0, lux: null, batt: null, active: false };
 let SEN = { temp: 29, hum: 62, lux: 400, pm: 28, motion: 0, door: 0 };
 let lastAcc = 0, shakeAt = 0, homeGeo = null, liveVid = null;
+let customCamImg = null;
+let camStreamUrl = localStorage.getItem('cam_stream_url') || '';
+
+function loadCustomCamStream(url) {
+  if (!url) { customCamImg = null; return; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = url;
+  customCamImg = img;
+}
+if (camStreamUrl) loadCustomCamStream(camStreamUrl);
 
 function tickSensors() {
   const h = new Date().getHours() + new Date().getMinutes() / 60;
@@ -429,13 +440,15 @@ function vHome() {
 }
 
 function vCam() {
+  const savedStreamUrl = localStorage.getItem('cam_stream_url') || '';
+  const cam1Title = camStreamUrl ? "(สตรีม IP Camera / ESP32-CAM)" : (liveVid ? "(สตรีมสดจากกล้องจริง)" : "(จำลอง)");
   return `
     <div class="section-title">
       <span><i class="fa-solid fa-video" style="color: var(--accent-blue);"></i> ระบบกล้องวงจรปิด & ตรวจจับวัตถุ</span>
     </div>
     
     <div class="chart-box">
-      <h3 style="font-size: 1rem; margin-bottom: 10px;"><i class="fa-solid fa-camera"></i> กล้อง 1 · หน้าบ้าน ${liveVid ? "(สตรีมสดจากกล้องจริง)" : "(จำลอง)"}</h3>
+      <h3 style="font-size: 1rem; margin-bottom: 10px;"><i class="fa-solid fa-camera"></i> กล้อง 1 · หน้าบ้าน ${cam1Title}</h3>
       <canvas id="c1" width="640" height="360"></canvas>
     </div>
 
@@ -443,6 +456,18 @@ function vCam() {
       <h3 style="font-size: 1rem; margin-bottom: 10px;"><i class="fa-solid fa-camera"></i> กล้อง 2 · ห้องนั่งเล่น (จำลอง)</h3>
       <canvas id="c2" width="640" height="360"></canvas>
     </div>
+
+    <!-- Connection Box for IP / ESP32-CAM Cameras -->
+    <details style="background: rgba(255,255,255,0.04); padding: 12px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-glass);">
+      <summary style="font-size: 0.85rem; font-weight: 700; color: var(--accent-blue); cursor: pointer;">
+        ⚙️ เชื่อมต่อกล้องจริง (ESP32-CAM / IP Camera / USB Webcam)
+      </summary>
+      <div style="margin-top: 10px; font-size: 0.8rem; color: #cbd5e1;">
+        <label style="display:block; margin-bottom:6px; font-weight:600;">ใส่อURL สตรีมกล้องวิดีโอ (MJPEG / Stream URL):</label>
+        <input type="text" id="camStreamInput" value="${savedStreamUrl}" placeholder="เช่น http://192.168.1.100:81/stream หรือ https://..." style="width:100%; padding:8px 12px; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); color:#fff; border-radius:8px; margin-bottom:10px; font-size:0.8rem;" />
+        <button id="btnSaveCamStream" style="width:100%; padding:9px; background:linear-gradient(135deg, #38bdf8, #0284c7); color:#fff; border:0; border-radius:8px; font-weight:700; cursor:pointer;">💾 บันทึกและเชื่อมต่อสตรีมกล้อง</button>
+      </div>
+    </details>
 
     <div class="row"><span>สถานะตรวจจับความเคลื่อนไหว</span><span class="val">${SEN.motion ? "🔴 พบความเคลื่อนไหว" : "⚪ ปกติ"}</span></div>
     <div class="row"><span>ความสว่างแสง (Lux)</span><span class="val">${SEN.lux} lx</span></div>
@@ -1071,7 +1096,25 @@ function vLog() {
 /* ══════════ Canvas Camera Visualizer ══════════ */
 function drawCams() {
   const c1 = document.getElementById("c1");
-  if (c1 && liveVid && liveVid.videoWidth > 0) {
+  if (c1 && customCamImg && customCamImg.complete && customCamImg.naturalWidth > 0) {
+    const x = c1.getContext("2d");
+    x.drawImage(customCamImg, 0, 0, 640, 360);
+    if (SEN.motion) {
+      x.strokeStyle = "#f43f5e";
+      x.lineWidth = 4;
+      x.strokeRect(8, 8, 624, 344);
+      x.fillStyle = "#f43f5e";
+      x.fillRect(8, 8, 200, 27);
+      x.fillStyle = "#fff";
+      x.font = "bold 14px sans-serif";
+      x.fillText("⚠ MOTION DETECTED", 16, 27);
+    }
+    x.fillStyle = "rgba(0,0,0,.6)";
+    x.fillRect(0, 330, 640, 30);
+    x.fillStyle = "#fff";
+    x.font = "13px monospace";
+    x.fillText("● IP CAM STREAM · " + new Date().toLocaleTimeString("th-TH") + " · " + SEN.lux + " lx", 10, 350);
+  } else if (c1 && liveVid && liveVid.videoWidth > 0) {
     const x = c1.getContext("2d");
     x.drawImage(liveVid, 0, 0, 640, 360);
     if (SEN.motion) {
@@ -1206,6 +1249,20 @@ function drawChart() {
 
 /* ══════════ Events Binding ══════════ */
 function bindEvents() {
+  const btnSaveCam = document.getElementById('btnSaveCamStream');
+  if (btnSaveCam) {
+    btnSaveCam.onclick = () => {
+      const inputEl = document.getElementById('camStreamInput');
+      if (inputEl) {
+        camStreamUrl = inputEl.value.trim();
+        localStorage.setItem('cam_stream_url', camStreamUrl);
+        loadCustomCamStream(camStreamUrl);
+        toast(camStreamUrl ? '📡 บันทึกลิงก์สตรีมกล้องแล้ว' : '⚪ ยกเลิกการเชื่อมสตรีมกล้องแล้ว');
+        render();
+      }
+    };
+  }
+
   document.querySelectorAll(".room-tabs .tab-btn").forEach(btn => {
     btn.onclick = () => {
       document.querySelectorAll(".room-tabs .tab-btn").forEach(b => b.classList.remove("active"));
