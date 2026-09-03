@@ -521,7 +521,11 @@ function vAuto() {
 /* ══════════ IoT MQTT, BLE & Built-in Infrared (IR Blaster) ══════════ */
 let myMode = 'remote'; // remote | receiver | ir_blaster
 let irDeviceType = 'tv'; // tv | ac | fan | custom
-let irBrand = 'samsung';
+let selectedBrands = {
+  tv: localStorage.getItem('ir_brand_tv') || 'samsung',
+  ac: localStorage.getItem('ir_brand_ac') || 'daikin',
+  fan: localStorage.getItem('ir_brand_fan') || 'hatari'
+};
 let irTargetTemp = 24;
 let irModeState = 'COOL';
 let irFanState = 'AUTO';
@@ -768,19 +772,18 @@ function getIRBrandChipsHtml(type) {
   };
 
   const list = brandsMap[type] || [];
-  if (!list.find(x => x.id === irBrand)) {
-    irBrand = list[0]?.id || 'samsung';
-  }
+  const activeBrand = selectedBrands[type] || list[0]?.id || 'samsung';
 
   return list.map(b => `
-    <button class="brand-chip ${irBrand === b.id ? 'active' : ''}" data-brand="${b.id}">
+    <button class="brand-chip ${activeBrand === b.id ? 'active' : ''}" data-brand="${b.id}">
       ${b.name}
     </button>
   `).join('');
 }
 
 function triggerIRSignal(cmdType, hexCodeVal = null) {
-  const hexCode = hexCodeVal || IR_CODES[irDeviceType]?.[irBrand]?.[cmdType] || '0x20DF10EF';
+  const activeBrand = selectedBrands[irDeviceType] || 'samsung';
+  const hexCode = hexCodeVal || IR_CODES[irDeviceType]?.[activeBrand]?.[cmdType] || '0x20DF10EF';
 
   // 1. Tactile Vibration Feedback
   if (navigator.vibrate) navigator.vibrate([25, 10, 25]);
@@ -799,7 +802,7 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
   if (mqttClient && mqttClient.connected) {
     const irPayload = {
       type: 'IR_TRANSMIT',
-      protocol: irBrand.toUpperCase(),
+      protocol: activeBrand.toUpperCase(),
       code: hexCode,
       device: irDeviceType,
       command: cmdType,
@@ -811,7 +814,7 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
   // 5. Update Status Feedback Text
   const statusEl = document.getElementById('irStatusText');
   if (statusEl) {
-    statusEl.textContent = `📡 ยิงสัญญาณ IR [${irBrand.toUpperCase()} ${cmdType.toUpperCase()}]: ${hexCode}`;
+    statusEl.textContent = `📡 ยิงสัญญาณ IR [${activeBrand.toUpperCase()} ${cmdType.toUpperCase()}]: ${hexCode}`;
   }
   toast(`📡 ยิงคลื่น IR ${hexCode}`);
 }
@@ -821,11 +824,12 @@ function bindBrandChips() {
     btn.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      document.querySelectorAll('.brand-chip').forEach(x => x.classList.remove('active'));
-      btn.classList.add('active');
-      irBrand = btn.dataset.brand;
+      const bId = btn.dataset.brand;
+      selectedBrands[irDeviceType] = bId;
+      localStorage.setItem('ir_brand_' + irDeviceType, bId);
+      document.querySelectorAll('.brand-chip').forEach(x => x.classList.toggle('active', x.dataset.brand === bId));
       const statusEl = document.getElementById('irStatusText');
-      if (statusEl) statusEl.textContent = `เลือกยี่ห้อ ${irBrand.toUpperCase()} แล้ว (38.0 kHz)`;
+      if (statusEl) statusEl.textContent = `เลือกยี่ห้อ ${bId.toUpperCase()} แล้ว (38.0 kHz)`;
     };
   });
 }
@@ -1495,7 +1499,7 @@ setInterval(() => {
   runRules();
   S._kwh[6].v = +(S._kwh[6].v + powerNow() / 1000 * (2 / 3600)).toFixed(4);
   saveState();
-  if (!drag && document.visibilityState === "visible") render();
+  if (!drag && V !== "remote" && document.visibilityState === "visible") render();
 }, 2000);
 
 setInterval(() => {
