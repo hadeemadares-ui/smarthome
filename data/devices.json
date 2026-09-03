@@ -4,7 +4,7 @@
     "name": "ไฟหลักห้องรับแขก",
     "room": "living_room",
     "type": "light",
-    "state": "off",
+    "state": false,
     "brightness": 80,
     "color": "#FFD166",
     "powerWatts": 15,

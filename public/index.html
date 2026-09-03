@@ -1,60 +1,92 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <meta name="theme-color" content="#0e0e11">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="บ้านของฉัน">
-  <title>บ้านของฉัน · SmartHome Hub (Offline & IoT)</title>
-  <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="/styles.css">
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Smart Home Hub</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#090d16">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
+  <div class="app-shell">
+    
+    <!-- Header -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="status-pulse"></div>
+        <div>
+          <h1>Smart Home Hub</h1>
+          <span class="hub-mode" id="connection-status">กำลังเชื่อมต่อ LAN...</span>
+        </div>
+      </div>
+      
+      <div class="quick-status">
+        <div class="badge">
+          <i data-lucide="zap"></i>
+          <span id="total-power-val">0 W</span>
+        </div>
+        <button id="voice-btn" class="icon-action-btn" title="สั่งงานด้วยเสียง">
+          <i data-lucide="mic"></i>
+        </button>
+      </div>
+    </header>
 
-  <div class="top">
-    <h1 id="ttl">บ้านของฉัน</h1>
-    <span class="badge" id="mode">🟢 100% Local</span>
+    <!-- Preset Scenes -->
+    <section class="section-scenes">
+      <button class="scene-chip active" data-scene="home"><i data-lucide="sun"></i> อยู่บ้าน</button>
+      <button class="scene-chip" data-scene="away"><i data-lucide="shield"></i> ออกจากบ้าน</button>
+      <button class="scene-chip" data-scene="night"><i data-lucide="moon"></i> เข้านอน</button>
+    </section>
+
+    <!-- Metrics Row -->
+    <section class="metrics-row">
+      <div class="glass-card stat-card">
+        <div class="stat-header">
+          <span>กำลังไฟฟ้าปัจจุบัน</span>
+          <i data-lucide="activity" class="text-accent"></i>
+        </div>
+        <div class="stat-body">
+          <h2 id="power-display">0 <small>Watts</small></h2>
+          <p class="stat-sub" id="energy-cost-estimate">~0.00 บาท / วัน</p>
+        </div>
+        <canvas id="energySparkline" height="45"></canvas>
+      </div>
+
+      <div class="glass-card stat-card">
+        <div class="stat-header">
+          <span>กล้องและเซนเซอร์สด</span>
+          <span id="nv-badge" class="badge-mini">Light Mode</span>
+        </div>
+        <div class="camera-preview-box">
+          <video id="webcam" autoplay playsinline muted></video>
+          <div id="motion-alert" class="motion-alert hidden">⚠ ตรวจพบความเคลื่อนไหว</div>
+        </div>
+        <div class="camera-controls">
+          <button id="btn-toggle-cam" class="btn-sm"><i data-lucide="camera"></i> เปิดกล้องสด</button>
+          <span id="lux-val" class="lux-label">ความสว่าง: -- lx</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Devices Grid -->
+    <section class="devices-section">
+      <div class="section-title">
+        <h3>อุปกรณ์ภายในบ้าน</h3>
+        <span class="device-count" id="device-count-label">0 เครื่อง</span>
+      </div>
+      <div class="device-cards-grid" id="devices-container"></div>
+    </section>
+
+    <!-- Voice Feedback Floating Bubble -->
+    <div id="voice-toast" class="voice-toast hidden">
+      <div class="voice-anim"></div>
+      <span id="voice-text">กำลังฟังคำสั่ง...</span>
+    </div>
+
   </div>
-  <div class="sub" id="clock">กำลังโหลด...</div>
 
-  <div id="view"></div>
-
-  <nav>
-    <div data-v="home" class="act"><span class="i">🏠</span>หน้าแรก</div>
-    <div data-v="cam"><span class="i">📹</span>กล้อง</div>
-    <div data-v="energy"><span class="i">⚡</span>พลังงาน</div>
-    <div data-v="auto"><span class="i">🤖</span>อัตโนมัติ</div>
-    <div data-v="remote"><span class="i">🎛️</span>รีโมท IoT</div>
-    <div data-v="log"><span class="i">📋</span>บันทึก</div>
-  </nav>
-
-  <div id="toast"></div>
-  <div id="install">📲 กดที่นี่เพื่อติดตั้งลงหน้าจอโฮม</div>
-
-  <!-- Real Sensor Permission Modal -->
-  <div id="perm">
-    <div style="font-size: 52px">🏠</div>
-    <h2 style="color: #fff; font-size: 19px; margin: 14px 0 6px; text-transform: none; letter-spacing: 0">
-      บ้านของฉัน · SmartHome Hub
-    </h2>
-    <p style="color: #8a8a99; font-size: 13.5px; line-height: 1.65; max-width: 310px">
-      ระบบจะใช้เซ็นเซอร์จริงในมือถือของคุณ<br>
-      <span style="color: #5a5a68; font-size: 12.5px">การเคลื่อนไหว · แสง · ตำแหน่ง · เสียง · แบตเตอรี่<br>
-      ข้อมูลทั้งหมดประมวลผลในเครื่องแบบ 100% Local</span>
-    </p>
-    <button id="go" style="background: #f5c518; color: #111; border: 0; padding: 15px 36px; border-radius: 14px; font-size: 15px; font-weight: 700; margin-top: 22px; cursor: pointer;">
-      อนุญาตและเริ่มใช้งาน
-    </button>
-    <button id="skip" style="background: none; color: #666; border: 0; font-size: 13px; margin-top: 16px; cursor: pointer;">
-      ข้าม · ใช้โหมดจำลอง
-    </button>
-  </div>
-
-  <script src="/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

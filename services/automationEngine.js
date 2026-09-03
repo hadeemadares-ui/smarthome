@@ -3,75 +3,37 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { deviceManager } from './deviceManager.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const RULES_FILE = path.join(__dirname, '../data/automations.json');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const AUTO_FILE = path.join(__dirname, '..', 'data', 'automations.json');
 
-const initialRules = [
+const DEFAULT_RULES = [
   {
-    id: 'rule_night_mode',
+    id: 'away-mode',
+    name: 'โหมดออกจากบ้าน (Away Mode)',
+    enabled: true,
+    action: 'turn_off_all'
+  },
+  {
+    id: 'night-mode',
     name: 'โหมดเข้านอน (Night Mode)',
-    description: 'ปิดไฟห้องรับแขก ล็อคประตูหน้าบ้าน และปรับแอร์ห้องนอนที่ 25°C',
     enabled: true,
-    trigger: 'manual_or_time',
-    time: '22:30',
-    actions: [
-      { deviceId: 'light_living_main', update: { state: 'off' } },
-      { deviceId: 'light_living_ambient', update: { state: 'off' } },
-      { deviceId: 'lock_front_door', update: { locked: true } },
-      { deviceId: 'ac_bedroom', update: { state: 'on', targetTemp: 25 } }
-    ]
-  },
-  {
-    id: 'rule_leave_home',
-    name: 'ออกจากบ้าน (Away Mode)',
-    description: 'ปิดไฟทุกดวง ปิดแอร์ทุกเครื่อง และเปิดระบบรักษาความปลอดภัยออฟไลน์',
-    enabled: true,
-    trigger: 'manual',
-    actions: [
-      { deviceId: 'light_living_main', update: { state: 'off' } },
-      { deviceId: 'light_living_ambient', update: { state: 'off' } },
-      { deviceId: 'light_bedroom_main', update: { state: 'off' } },
-      { deviceId: 'ac_living', update: { state: 'off' } },
-      { deviceId: 'ac_bedroom', update: { state: 'off' } },
-      { deviceId: 'lock_front_door', update: { locked: true } },
-      { deviceId: 'security_alarm', update: { state: 'on', mode: 'armed_away' } }
-    ]
-  },
-  {
-    id: 'rule_auto_light_mmwave',
-    name: 'เปิดไฟอัตโนมัติเมื่อพบการเคลื่อนไหว (mmWave)',
-    description: 'เปิดไฟ LED เมื่อเซนเซอร์ mmWave ตรวจเจอมนุษย์ในห้องรับแขก',
-    enabled: true,
-    trigger: 'sensor_presence',
-    actions: [
-      { deviceId: 'light_living_ambient', update: { state: 'on', brightness: 60 } }
-    ]
+    action: 'night_routine'
   }
 ];
 
 class AutomationEngine {
   constructor() {
-    this.rules = this.loadRules();
+    this.rules = DEFAULT_RULES;
+    this.init();
   }
 
-  loadRules() {
-    try {
-      if (fs.existsSync(RULES_FILE)) {
-        return JSON.parse(fs.readFileSync(RULES_FILE, 'utf8'));
+  init() {
+    if (fs.existsSync(AUTO_FILE)) {
+      try {
+        this.rules = JSON.parse(fs.readFileSync(AUTO_FILE, 'utf-8'));
+      } catch (err) {
+        this.rules = DEFAULT_RULES;
       }
-    } catch (err) {
-      console.error('Error loading automations:', err);
-    }
-    this.saveRules(initialRules);
-    return initialRules;
-  }
-
-  saveRules(rulesToSave = this.rules) {
-    try {
-      fs.writeFileSync(RULES_FILE, JSON.stringify(rulesToSave, null, 2));
-    } catch (err) {
-      console.error('Error saving automations:', err);
     }
   }
 
@@ -79,31 +41,35 @@ class AutomationEngine {
     return this.rules;
   }
 
-  toggleRule(id) {
-    const rule = this.rules.find(r => r.id === id);
-    if (rule) {
-      rule.enabled = !rule.enabled;
-      this.saveRules();
+  executeRule(id) {
+    if (id === 'away' || id === 'away-mode') {
+      deviceManager.getAll().forEach(d => {
+        if (d.state) deviceManager.toggle(d.id);
+      });
+      return { success: true, message: 'ปิดอุปกรณ์ทั้งหมดเรียบร้อย (Away Mode)' };
     }
-    return rule;
+    if (id === 'night' || id === 'night-mode') {
+      deviceManager.getAll().forEach(d => {
+        if (d.type === 'light' && d.state) deviceManager.toggle(d.id);
+        if (d.type === 'ac' && !d.state) deviceManager.toggle(d.id);
+      });
+      return { success: true, message: 'เปิดแอร์และปิดไฟทุกดวงเรียบร้อย (Night Mode)' };
+    }
+    if (id === 'home') {
+      const livingLight = deviceManager.getById('light-living');
+      if (livingLight && !livingLight.state) deviceManager.toggle(livingLight.id);
+      return { success: true, message: 'ยินดีต้อนรับกลับบ้าน เปิดไฟห้องนั่งเล่นแล้ว' };
+    }
+    return { success: false, message: 'ไม่พบโหมดคำสั่ง' };
   }
 
-  executeRule(id) {
-    const rule = this.rules.find(r => r.id === id);
-    if (!rule) return { success: false, message: 'Rule not found' };
-
-    const results = [];
-    rule.actions.forEach(act => {
-      const updated = deviceManager.update(act.deviceId, act.update);
-      if (updated) results.push(updated);
-    });
-
-    return {
-      success: true,
-      ruleName: rule.name,
-      updatedDevices: results,
-      timestamp: new Date().toISOString()
-    };
+  toggleRule(id) {
+    const r = this.rules.find(item => item.id === id);
+    if (r) {
+      r.enabled = !r.enabled;
+      return r;
+    }
+    return null;
   }
 }
 
