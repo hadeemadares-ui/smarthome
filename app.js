@@ -601,8 +601,8 @@ function vAuto() {
 }
 
 /* ══════════ IoT MQTT, BLE & Built-in Infrared (IR Blaster) ══════════ */
-let myMode = 'remote'; // remote | receiver | ir_blaster
-let irDeviceType = 'tv'; // tv | ac | fan | custom
+let myMode = localStorage.getItem('remote_myMode') || 'remote'; // remote | receiver | ir_blaster
+let irDeviceType = localStorage.getItem('remote_irDeviceType') || 'tv'; // tv | ac | fan | custom
 let selectedBrands = {
   tv: localStorage.getItem('ir_brand_tv') || 'samsung',
   ac: localStorage.getItem('ir_brand_ac') || 'daikin',
@@ -956,13 +956,11 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
 
 function bindRemoteEvents() {
   document.querySelectorAll('.remote-segment-btn').forEach(b => {
-    b.onclick = () => {
-      document.querySelectorAll('.remote-segment-btn').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
+    b.onclick = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       myMode = b.dataset.mode;
-      document.getElementById('remotePanel')?.classList.toggle('hide', myMode !== 'remote');
-      document.getElementById('irPanel')?.classList.toggle('hide', myMode !== 'ir_blaster');
-      document.getElementById('receiverPanel')?.classList.toggle('hide', myMode !== 'receiver');
+      localStorage.setItem('remote_myMode', myMode);
+      render(true);
     };
   });
 
@@ -980,20 +978,11 @@ function bindRemoteEvents() {
 
   // IR Type Tabs Handler (TV, AC, Fan, Custom)
   document.querySelectorAll('.ir-type-btn').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('.ir-type-btn').forEach(x => x.classList.remove('active'));
-      btn.classList.add('active');
+    btn.onclick = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       irDeviceType = btn.dataset.irtype;
-
-      document.getElementById('irTvView')?.classList.toggle('hide', irDeviceType !== 'tv');
-      document.getElementById('irAcView')?.classList.toggle('hide', irDeviceType !== 'ac');
-      document.getElementById('irFanView')?.classList.toggle('hide', irDeviceType !== 'fan');
-      document.getElementById('irCustomView')?.classList.toggle('hide', irDeviceType !== 'custom');
-
-      const brandSelectEl = document.getElementById('irBrandSelect');
-      if (brandSelectEl) {
-        brandSelectEl.innerHTML = getIRBrandDropdownOptions(irDeviceType);
-      }
+      localStorage.setItem('remote_irDeviceType', irDeviceType);
+      render(true);
     };
   });
 
