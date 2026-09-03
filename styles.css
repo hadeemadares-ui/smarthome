@@ -600,13 +600,94 @@ input:checked + .toggle-slider:before {
   100% { transform: scale(1.2); box-shadow: 0 0 40px #ff0055; }
 }
 
-.ir-type-tabs {
+/* Minimalist Remote UI Enhancements */
+.remote-segment-bar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  padding: 4px;
+  border-radius: 20px;
+  border: 1px solid var(--border-glass);
+  margin-bottom: 20px;
 }
+.remote-segment-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.remote-segment-btn.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(56, 189, 248, 0.35));
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+}
+
+.remote-dpad-circle {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid var(--border-glass);
+  margin: 10px auto 24px auto;
+  position: relative;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dpad-center-btn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-indigo), #38bdf8);
+  border: 0;
+  color: white;
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: 0 0 25px var(--accent-indigo-glow);
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.15s ease;
+}
+.dpad-center-btn:active {
+  transform: scale(0.92);
+}
+
+.dpad-dir-btn {
+  position: absolute;
+  background: transparent;
+  border: 0;
+  color: #cbd5e1;
+  font-size: 1.2rem;
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+}
+.dpad-dir-btn:active {
+  color: #38bdf8;
+  transform: scale(1.15);
+}
+.dpad-dir-btn.up { top: 10px; }
+.dpad-dir-btn.down { bottom: 10px; }
+.dpad-dir-btn.left { left: 10px; }
+.dpad-dir-btn.right { right: 10px; }
 .ir-type-btn {
   padding: 8px 14px;
   border-radius: 12px;

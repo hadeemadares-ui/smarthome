@@ -592,175 +592,158 @@ const IR_CODES = {
 function vRemote() {
   const savedRoom = localStorage.getItem('room') || '';
   return `
-    <div class="remote-card">
-      <h3 style="font-size: 1.1rem; margin-bottom: 14px;"><i class="fa-solid fa-gamepad"></i> โหมดของเครื่องนี้</h3>
-      <div class="modes" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
-        <button class="mode ${myMode === 'remote' ? 'active' : ''}" data-mode="remote">📱 รีโมทแอป</button>
-        <button class="mode ${myMode === 'ir_blaster' ? 'active' : ''}" data-mode="ir_blaster" style="background: linear-gradient(135deg, rgba(239,68,68,0.3), rgba(249,115,22,0.3)); border-color: rgba(239,68,68,0.5);">📡 รีโมท IR</button>
-        <button class="mode ${myMode === 'receiver' ? 'active' : ''}" data-mode="receiver">📺 ตัวรับ</button>
-      </div>
-
-      <div class="row" style="margin-top: 14px; margin-bottom: 12px;">
-        <span style="min-width: 80px;">รหัสห้อง:</span>
-        <input id="roomCode" placeholder="เช่น home123" maxlength="12" value="${savedRoom}">
-      </div>
-      <button id="btnJoin">🔗 เชื่อมต่อห้อง (MQTT Broker)</button>
-      <button id="btnBLE" style="width:100%; margin-top:10px; padding:12px; border:1px solid var(--accent-blue); background:rgba(56,189,248,0.12); color:var(--accent-blue); border-radius:12px; font-weight:600; cursor:pointer;">
-        📡 เชื่อมต่อบอร์ด ESP32 ผ่าน Bluetooth (BLE)
+    <!-- Segmented Capsule Mode Picker -->
+    <div class="remote-segment-bar">
+      <button class="remote-segment-btn ${myMode === 'remote' ? 'active' : ''}" data-mode="remote">
+        <i class="fa-solid fa-gamepad"></i> 📱 รีโมทแอป
       </button>
-      <p id="netStatus" style="margin-top:12px; font-size:0.85rem; color:var(--text-muted); text-align:center;">ยังไม่ได้เชื่อมต่อ</p>
+      <button class="remote-segment-btn ${myMode === 'ir_blaster' ? 'active' : ''}" data-mode="ir_blaster">
+        <i class="fa-solid fa-tower-broadcast"></i> 📡 รีโมท IR
+      </button>
+      <button class="remote-segment-btn ${myMode === 'receiver' ? 'active' : ''}" data-mode="receiver">
+        <i class="fa-solid fa-desktop"></i> 📺 ตัวรับ
+      </button>
     </div>
 
-    <!-- Mode 1: Wireless Smart Home Remote -->
-    <div class="remote-card ${myMode !== 'remote' ? 'hide' : ''}" id="remotePanel">
-      <h3 style="font-size: 1.1rem; margin-bottom: 16px;"><i class="fa-solid fa-sliders"></i> แผงรีโมทไร้สายสมาร์ทโฮม</h3>
-      <div class="dpad-container">
-        <button class="dpad-btn" data-cmd="UP">▲</button>
-        <button class="dpad-btn" data-cmd="LEFT">◀</button>
-        <button class="dpad-btn ok" data-cmd="OK">OK</button>
-        <button class="dpad-btn" data-cmd="RIGHT">▶</button>
-        <button class="dpad-btn" data-cmd="DOWN">▼</button>
+    <!-- Mode 1: Sleek Wireless Smart Home Remote -->
+    <div class="remote-card ${myMode !== 'remote' ? 'hide' : ''}" id="remotePanel" style="padding: 20px;">
+      <div style="text-align: center; margin-bottom: 4px;">
+        <div style="font-size: 1rem; font-weight: 700; color: #fff;">🎛️ แผงรีโมทควบคุมไร้สาย</div>
       </div>
-      <div class="scenes-grid" style="grid-template-columns: 1fr 1fr; margin-top: 16px;">
-        <button class="k wide on"  data-cmd="LIGHT_ON">💡 เปิดไฟ</button>
-        <button class="k wide off" data-cmd="LIGHT_OFF">🌙 ปิดไฟ</button>
-        <button class="k wide"     data-cmd="FAN_UP">🌀 พัดลม +</button>
-        <button class="k wide"     data-cmd="FAN_DOWN">🌀 พัดลม −</button>
-        <button class="k wide"     data-cmd="AC_ON">❄️ เปิดแอร์</button>
-        <button class="k wide off" data-cmd="ALL_OFF">⛔ ปิดทั้งหมด</button>
+
+      <!-- Circular Apple Glass D-PAD Trackpad -->
+      <div class="remote-dpad-circle">
+        <button class="dpad-dir-btn up" data-cmd="UP"><i class="fa-solid fa-chevron-up"></i></button>
+        <button class="dpad-dir-btn down" data-cmd="DOWN"><i class="fa-solid fa-chevron-down"></i></button>
+        <button class="dpad-dir-btn left" data-cmd="LEFT"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="dpad-dir-btn right" data-cmd="RIGHT"><i class="fa-solid fa-chevron-right"></i></button>
+        <button class="dpad-center-btn" data-cmd="OK">OK</button>
       </div>
-      <p id="lastSent" style="margin-top:14px; font-size:0.85rem; color:var(--accent-amber); text-align:center;"></p>
+
+      <!-- Balanced 2-Column Action Buttons -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button class="k wide on"  data-cmd="LIGHT_ON" style="padding:13px; border-radius:14px; font-weight:600;">💡 เปิดไฟ</button>
+        <button class="k wide off" data-cmd="LIGHT_OFF" style="padding:13px; border-radius:14px; font-weight:600;">🌙 ปิดไฟ</button>
+        <button class="k wide"     data-cmd="FAN_UP" style="padding:13px; border-radius:14px; font-weight:600;">🌀 พัดลม +</button>
+        <button class="k wide"     data-cmd="FAN_DOWN" style="padding:13px; border-radius:14px; font-weight:600;">🌀 พัดลม −</button>
+        <button class="k wide"     data-cmd="AC_ON" style="padding:13px; border-radius:14px; font-weight:600;">❄️ เปิดแอร์</button>
+        <button class="k wide off" data-cmd="ALL_OFF" style="padding:13px; border-radius:14px; font-weight:600;">⛔ ปิดทั้งหมด</button>
+      </div>
+      <p id="lastSent" style="margin-top:14px; font-size:0.8rem; color:var(--accent-amber); text-align:center;"></p>
     </div>
 
-    <!-- Mode 2: Hardware & Built-in Infrared (IR Blaster) Universal Remote -->
-    <div class="remote-card ${myMode !== 'ir_blaster' ? 'hide' : ''}" id="irPanel">
-      <div id="irPulseEmitter" class="ir-pulse-emitter">
+    <!-- Mode 2: Minimalist IR Blaster Controller -->
+    <div class="remote-card ${myMode !== 'ir_blaster' ? 'hide' : ''}" id="irPanel" style="padding: 20px;">
+      <div id="irPulseEmitter" class="ir-pulse-emitter" style="width:44px; height:44px; font-size:18px; margin-bottom:10px;">
         <i class="fa-solid fa-tower-broadcast"></i>
       </div>
-      <div style="text-align: center; margin-bottom: 18px;">
-        <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">📡 รีโมทอินฟราเรด (Infrared IR Blaster)</div>
-        <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
-          รองรับ IR ในตัวเครื่องมือถือ, Web Audio IR 38kHz, ESP32 IR Transmitter
-        </div>
+      <div style="text-align: center; margin-bottom: 14px;">
+        <div style="font-size: 1rem; font-weight: 700; color: #fff;">📡 รีโมทอินฟราเรด (Infrared IR)</div>
       </div>
 
-      <!-- IR Device Selector Tabs -->
-      <div class="ir-type-tabs">
-        <button class="ir-type-btn ${irDeviceType === 'tv' ? 'active' : ''}" data-irtype="tv">📺 ทีวี (TV)</button>
-        <button class="ir-type-btn ${irDeviceType === 'ac' ? 'active' : ''}" data-irtype="ac">❄️ แอร์ (Air Con)</button>
-        <button class="ir-type-btn ${irDeviceType === 'fan' ? 'active' : ''}" data-irtype="fan">🌀 พัดลม (Fan)</button>
-        <button class="ir-type-btn ${irDeviceType === 'custom' ? 'active' : ''}" data-irtype="custom">⚙️ กำหนดรหัส IR เอง</button>
+      <!-- Compact IR Type Pill Tabs -->
+      <div class="ir-type-tabs" style="justify-content: center; margin-bottom: 14px;">
+        <button class="ir-type-btn ${irDeviceType === 'tv' ? 'active' : ''}" data-irtype="tv">📺 ทีวี</button>
+        <button class="ir-type-btn ${irDeviceType === 'ac' ? 'active' : ''}" data-irtype="ac">❄️ แอร์</button>
+        <button class="ir-type-btn ${irDeviceType === 'fan' ? 'active' : ''}" data-irtype="fan">🌀 พัดลม</button>
+        <button class="ir-type-btn ${irDeviceType === 'custom' ? 'active' : ''}" data-irtype="custom">⚙️ คัสตอม</button>
       </div>
 
-      <!-- Brand Selector Dropdown -->
-      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 14px; margin-bottom: 18px; border: 1px solid var(--border-glass);">
-        <span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600;">🏷️ เลือกยี่ห้อ (Brand):</span>
-        <select id="irBrandSelect" style="background: rgba(18, 22, 32, 0.9); color: #fff; border: 1px solid var(--accent-indigo); padding: 6px 12px; border-radius: 10px; font-size: 0.85rem; outline: none;">
+      <!-- Minimal Brand Selector -->
+      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-glass);">
+        <span style="font-size: 0.8rem; color: #cbd5e1;">ยี่ห้อ (Brand):</span>
+        <select id="irBrandSelect" style="background: rgba(18, 22, 32, 0.9); color: #fff; border: 1px solid var(--accent-indigo); padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; outline: none;">
           ${getIRBrandOptions(irDeviceType)}
         </select>
       </div>
 
-      <!-- TV Universal Controller View -->
+      <!-- TV Minimal Controls -->
       <div id="irTvView" class="${irDeviceType !== 'tv' ? 'hide' : ''}">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
-          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
-            🔴 เปิด / ปิด (POWER)
-          </button>
-          <button class="ir-cmd-btn" data-ircmd="mute" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border-glass); padding: 14px; border-radius: 14px; font-weight: 600; cursor: pointer;">
-            🔇 ปิดเสียง (MUTE)
-          </button>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-          <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); padding: 12px; border-radius: 16px; text-align: center;">
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px;">ปรับระดับเสียง (VOLUME)</div>
-            <div style="display: flex; gap: 8px;">
-              <button class="ir-cmd-btn" data-ircmd="volUp" style="flex:1; padding:12px; background:rgba(56,189,248,0.15); border:1px solid var(--accent-blue); color:var(--accent-blue); border-radius:12px; font-weight:700; cursor:pointer;">VOL +</button>
-              <button class="ir-cmd-btn" data-ircmd="volDn" style="flex:1; padding:12px; background:rgba(255,255,255,0.06); border:1px solid var(--border-glass); color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">VOL −</button>
-            </div>
-          </div>
-
-          <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); padding: 12px; border-radius: 16px; text-align: center;">
-            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px;">เปลี่ยนช่องรายการ (CHANNEL)</div>
-            <div style="display: flex; gap: 8px;">
-              <button class="ir-cmd-btn" data-ircmd="chUp" style="flex:1; padding:12px; background:rgba(168,85,247,0.15); border:1px solid var(--accent-purple); color:var(--accent-purple); border-radius:12px; font-weight:700; cursor:pointer;">CH ▲</button>
-              <button class="ir-cmd-btn" data-ircmd="chDn" style="flex:1; padding:12px; background:rgba(255,255,255,0.06); border:1px solid var(--border-glass); color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">CH ▼</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="dpad-container">
-          <button class="ir-cmd-btn dpad-btn" data-ircmd="up">▲</button>
-          <button class="ir-cmd-btn dpad-btn" data-ircmd="left">◀</button>
-          <button class="ir-cmd-btn dpad-btn ok" data-ircmd="ok">OK</button>
-          <button class="ir-cmd-btn dpad-btn" data-ircmd="right">▶</button>
-          <button class="ir-cmd-btn dpad-btn" data-ircmd="down">▼</button>
-        </div>
-      </div>
-
-      <!-- AC (Air Con) Universal Controller View -->
-      <div id="irAcView" class="${irDeviceType !== 'ac' ? 'hide' : ''}">
-        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15)); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 16px;">
-          <div style="font-size: 0.8rem; color: #94a3b8;">อุณหภูมิที่ตั้งไว้ (SET TEMP)</div>
-          <div id="irAcTempDisp" style="font-size: 2.8rem; font-weight: 800; color: #38bdf8; margin: 4px 0;">${irTargetTemp}°C</div>
-          <div style="display: flex; justify-content: center; gap: 12px; margin-top: 10px;">
-            <button id="btnAcTempDn" style="width:50px; height:50px; border-radius:14px; background:rgba(255,255,255,0.1); border:1px solid var(--border-glass); color:#fff; font-size:22px; cursor:pointer;">−</button>
-            <button id="btnAcTempUp" style="width:50px; height:50px; border-radius:14px; background:linear-gradient(135deg, var(--accent-blue), var(--accent-indigo)); border:0; color:#fff; font-size:22px; cursor:pointer; box-shadow: 0 4px 15px var(--accent-blue-glow);">+</button>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
-            🔴 เปิด / ปิด แอร์
-          </button>
-          <button class="ir-cmd-btn" data-ircmd="cool" style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid var(--accent-blue); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
-            ❄️ โหมดความเย็น (COOL)
-          </button>
-        </div>
-      </div>
-
-      <!-- Fan Universal Controller View -->
-      <div id="irFanView" class="${irDeviceType !== 'fan' ? 'hide' : ''}">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
-            🔴 เปิด / ปิด พัดลม
-          </button>
-          <button class="ir-cmd-btn" data-ircmd="speed" style="background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid var(--accent-amber); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
-            🌀 ปรับระดับแรงลม (SPEED)
-          </button>
+          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🔴 Power</button>
+          <button class="ir-cmd-btn" data-ircmd="mute" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer;">🔇 Mute</button>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <button class="ir-cmd-btn" data-ircmd="swing" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 14px; border-radius: 14px; font-weight: 600; cursor: pointer;">
-            🔄 ส่ายพัดลม (SWING)
-          </button>
-          <button class="ir-cmd-btn" data-ircmd="timer" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 14px; border-radius: 14px; font-weight: 600; cursor: pointer;">
-            ⏱️ ตั้งเวลาปิด (TIMER)
-          </button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          <button class="ir-cmd-btn" data-ircmd="volUp" style="padding:10px; background:rgba(56,189,248,0.12); border:1px solid var(--accent-blue); color:var(--accent-blue); border-radius:10px; font-weight:700;">VOL +</button>
+          <button class="ir-cmd-btn" data-ircmd="volDn" style="padding:10px; background:rgba(255,255,255,0.05); border:1px solid var(--border-glass); color:#fff; border-radius:10px; font-weight:700;">VOL −</button>
+          <button class="ir-cmd-btn" data-ircmd="chUp" style="padding:10px; background:rgba(168,85,247,0.12); border:1px solid var(--accent-purple); color:var(--accent-purple); border-radius:10px; font-weight:700;">CH ▲</button>
+          <button class="ir-cmd-btn" data-ircmd="chDn" style="padding:10px; background:rgba(255,255,255,0.05); border:1px solid var(--border-glass); color:#fff; border-radius:10px; font-weight:700;">CH ▼</button>
+        </div>
+        
+        <div class="remote-dpad-circle" style="width: 180px; height: 180px; margin: 10px auto;">
+          <button class="ir-cmd-btn dpad-dir-btn up" data-ircmd="up"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="ir-cmd-btn dpad-dir-btn down" data-ircmd="down"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="ir-cmd-btn dpad-dir-btn left" data-ircmd="left"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="ir-cmd-btn dpad-dir-btn right" data-ircmd="right"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="ir-cmd-btn dpad-center-btn" data-ircmd="ok" style="width: 60px; height: 60px; font-size: 0.9rem;">OK</button>
         </div>
       </div>
 
-      <!-- Custom IR Code Generator & Learner View -->
-      <div id="irCustomView" class="${irDeviceType !== 'custom' ? 'hide' : ''}">
-        <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); padding: 16px; border-radius: 16px; margin-bottom: 14px;">
-          <label style="display:block; font-size:0.85rem; color:#cbd5e1; margin-bottom:8px; font-weight:600;">ป้อนรหัส IR Hex Code (เช่น 0x20DF10EF):</label>
-          <div style="display:flex; gap:8px;">
-            <input id="inputCustomIrHex" placeholder="0x20DF10EF" style="flex:1; background:rgba(18,22,32,0.9); color:#fff; border:1px solid var(--border-glass); padding:10px 14px; border-radius:12px; font-family:monospace;">
-            <button id="btnSendCustomIr" style="background:linear-gradient(135deg, #ef4444, #f97316); color:#fff; border:0; padding:10px 18px; border-radius:12px; font-weight:700; cursor:pointer;">ยิง IR 📡</button>
+      <!-- AC Minimal Controls -->
+      <div id="irAcView" class="${irDeviceType !== 'ac' ? 'hide' : ''}">
+        <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 14px; text-align: center; margin-bottom: 12px;">
+          <div style="font-size: 0.75rem; color: #94a3b8;">อุณหภูมิที่ตั้งไว้ (TEMP)</div>
+          <div id="irAcTempDisp" style="font-size: 2.4rem; font-weight: 800; color: #38bdf8; margin: 2px 0;">${irTargetTemp}°C</div>
+          <div style="display: flex; justify-content: center; gap: 10px; margin-top: 6px;">
+            <button id="btnAcTempDn" style="width:42px; height:42px; border-radius:12px; background:rgba(255,255,255,0.08); border:1px solid var(--border-glass); color:#fff; font-size:18px; cursor:pointer;">−</button>
+            <button id="btnAcTempUp" style="width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, var(--accent-blue), var(--accent-indigo)); border:0; color:#fff; font-size:18px; cursor:pointer;">+</button>
           </div>
         </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🔴 Power</button>
+          <button class="ir-cmd-btn" data-ircmd="cool" style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid var(--accent-blue); padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">❄️ Cool</button>
+        </div>
       </div>
 
-      <p id="irStatusText" style="margin-top: 16px; font-size: 0.85rem; color: var(--accent-amber); text-align: center;">
+      <!-- Fan Minimal Controls -->
+      <div id="irFanView" class="${irDeviceType !== 'fan' ? 'hide' : ''}">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🔴 Power</button>
+          <button class="ir-cmd-btn" data-ircmd="speed" style="background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid var(--accent-amber); padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🌀 Speed</button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="ir-cmd-btn" data-ircmd="swing" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer;">🔄 Swing</button>
+          <button class="ir-cmd-btn" data-ircmd="timer" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer;">⏱️ Timer</button>
+        </div>
+      </div>
+
+      <!-- Custom IR Code Minimal Input -->
+      <div id="irCustomView" class="${irDeviceType !== 'custom' ? 'hide' : ''}">
+        <div style="display:flex; gap:8px;">
+          <input id="inputCustomIrHex" placeholder="เช่น 0x20DF10EF" style="flex:1; background:rgba(18,22,32,0.9); color:#fff; border:1px solid var(--border-glass); padding:8px 12px; border-radius:10px; font-family:monospace; font-size:0.85rem;">
+          <button id="btnSendCustomIr" style="background:linear-gradient(135deg, #ef4444, #f97316); color:#fff; border:0; padding:8px 14px; border-radius:10px; font-weight:700; cursor:pointer;">ยิง IR</button>
+        </div>
+      </div>
+
+      <p id="irStatusText" style="margin-top: 12px; font-size: 0.78rem; color: var(--accent-amber); text-align: center;">
         พร้อมยิงสัญญาณอินฟราเรด 38.0 kHz
       </p>
     </div>
 
     <!-- Mode 3: Receiver Monitor -->
-    <div class="remote-card ${myMode !== 'receiver' ? 'hide' : ''}" id="receiverPanel">
-      <h3 style="font-size: 1.1rem; margin-bottom: 12px;"><i class="fa-solid fa-desktop"></i> จอรับสัญญาณคำสั่ง</h3>
+    <div class="remote-card ${myMode !== 'receiver' ? 'hide' : ''}" id="receiverPanel" style="padding: 20px;">
+      <h3 style="font-size: 1rem; margin-bottom: 10px;"><i class="fa-solid fa-desktop"></i> จอรับสัญญาณคำสั่ง</h3>
       <div id="bigCmd">— รอรับคำสั่ง —</div>
       <ul id="cmdLog"></ul>
     </div>
+
+    <!-- Collapsible Connection Settings Bar (Subtle & Uncluttered) -->
+    <details style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; padding: 12px 16px; margin-top: 16px;">
+      <summary style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; cursor: pointer; user-select: none;">
+        ⚙️ ตั้งค่าการเชื่อมต่อฮาร์ดแวร์ (MQTT / Bluetooth BLE)
+      </summary>
+      <div style="margin-top: 12px;">
+        <div class="row" style="margin-bottom: 10px;">
+          <span style="min-width: 80px; font-size: 0.8rem; color: #cbd5e1;">รหัสห้อง:</span>
+          <input id="roomCode" placeholder="เช่น home123" maxlength="12" value="${savedRoom}" style="padding: 6px 10px; font-size: 0.85rem;">
+        </div>
+        <button id="btnJoin" style="width: 100%; padding: 10px; font-size: 0.85rem;">🔗 เชื่อมต่อห้อง (MQTT Broker)</button>
+        <button id="btnBLE" style="width:100%; margin-top:8px; padding:10px; border:1px solid var(--accent-blue); background:rgba(56,189,248,0.12); color:var(--accent-blue); border-radius:10px; font-size:0.85rem; font-weight:600; cursor:pointer;">
+          📡 เชื่อมต่อบอร์ด ESP32 ผ่าน Bluetooth (BLE)
+        </button>
+        <p id="netStatus" style="margin-top:8px; font-size:0.8rem; color:var(--text-muted); text-align:center;">ยังไม่ได้เชื่อมต่อ</p>
+      </div>
+    </details>
   `;
 }
 
@@ -831,9 +814,9 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
 }
 
 function bindRemoteEvents() {
-  document.querySelectorAll('.mode').forEach(b => {
+  document.querySelectorAll('.remote-segment-btn').forEach(b => {
     b.onclick = () => {
-      document.querySelectorAll('.mode').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.remote-segment-btn').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
       myMode = b.dataset.mode;
       document.getElementById('remotePanel')?.classList.toggle('hide', myMode !== 'remote');
