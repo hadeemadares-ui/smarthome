@@ -180,6 +180,16 @@ const api = {
   async set(id, p) {
     Object.assign(S[id], p);
     saveState();
+    
+    // Broadcast MQTT Payload to Real Smart Home Hardware / ESP32 Relays
+    if (mqttClient && mqttClient.connected && mqttTopic) {
+      try {
+        const payload = { id, ...p, at: Date.now() };
+        mqttClient.publish(`${mqttTopic}/set/${id}`, JSON.stringify(payload));
+        mqttClient.publish(mqttTopic, JSON.stringify(payload));
+      } catch (e) {}
+    }
+
     try {
       fetch(`/api/devices/${id}/update`, {
         method: 'POST',
@@ -813,21 +823,73 @@ function vRemote() {
       <ul id="cmdLog"></ul>
     </div>
 
-    <!-- Collapsible Connection Settings Bar (Subtle & Uncluttered) -->
-    <details style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; padding: 12px 16px; margin-top: 16px;">
-      <summary style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; cursor: pointer; user-select: none;">
-        ⚙️ ตั้งค่าการเชื่อมต่อฮาร์ดแวร์ (MQTT / Bluetooth BLE)
+    <!-- Production Hardware Connection Drawer -->
+    <details style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; padding: 14px 16px; margin-top: 16px;">
+      <summary style="font-size: 0.85rem; color: var(--accent-blue); font-weight: 700; cursor: pointer; user-select: none;">
+        ⚙️ ตั้งค่าการเชื่อมต่อฮาร์ดแวร์จริง (MQTT / ESP32 Gateway / BLE)
       </summary>
-      <div style="margin-top: 12px;">
-        <div class="row" style="margin-bottom: 10px;">
-          <span style="min-width: 80px; font-size: 0.8rem; color: #cbd5e1;">รหัสห้อง:</span>
-          <input id="roomCode" placeholder="เช่น home123" maxlength="12" value="${savedRoom}" style="padding: 6px 10px; font-size: 0.85rem;">
+      <div style="margin-top: 14px; font-size: 0.8rem; color: #cbd5e1;">
+        <div style="margin-bottom: 10px;">
+          <label style="display:block; font-weight:600; margin-bottom:4px;">MQTT Server Broker URL:</label>
+          <input id="mqttBrokerUrl" value="${localStorage.getItem('mqtt_broker_url') || 'wss://broker.emqx.io:8084/mqtt'}" placeholder="wss://broker.hivemq.com:8000/mqtt" style="width:100%; padding:8px 10px; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); color:#fff; border-radius:8px; font-size:0.8rem;" />
         </div>
-        <button id="btnJoin" style="width: 100%; padding: 10px; font-size: 0.85rem;">🔗 เชื่อมต่อห้อง (MQTT Broker)</button>
-        <button id="btnBLE" style="width:100%; margin-top:8px; padding:10px; border:1px solid var(--accent-blue); background:rgba(56,189,248,0.12); color:var(--accent-blue); border-radius:10px; font-size:0.85rem; font-weight:600; cursor:pointer;">
-          📡 เชื่อมต่อบอร์ด ESP32 ผ่าน Bluetooth (BLE)
+        
+        <div style="margin-bottom: 10px;">
+          <label style="display:block; font-weight:600; margin-bottom:4px;">รหัสบ้าน / Topic Prefix:</label>
+          <input id="roomCode" placeholder="เช่น home123" maxlength="20" value="${savedRoom}" style="width:100%; padding:8px 10px; background:rgba(0,0,0,0.4); border:1px solid var(--border-glass); color:#fff; border-radius:8px; font-size:0.8rem;" />
+        </div>
+
+        <button id="btnJoin" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #38bdf8, #0284c7); color:#fff; border:0; border-radius:8px; font-weight:700; cursor:pointer;">
+          🔗 เชื่อมต่อ MQTT Broker ควบคุมบ้านจริง
         </button>
-        <p id="netStatus" style="margin-top:8px; font-size:0.8rem; color:var(--text-muted); text-align:center;">ยังไม่ได้เชื่อมต่อ</p>
+
+        <button id="btnBLE" style="width:100%; margin-top:8px; padding:10px; border:1px solid var(--accent-blue); background:rgba(56,189,248,0.12); color:var(--accent-blue); border-radius:8px; font-size:0.82rem; font-weight:600; cursor:pointer;">
+          📡 เชื่อมต่อบอร์ด ESP32 โดยตรงผ่าน Bluetooth (BLE)
+        </button>
+
+        <p id="netStatus" style="margin-top:10px; font-size:0.8rem; color:var(--accent-amber); text-align:center; font-weight:600;">
+          ${mqttClient && mqttClient.connected ? "🟢 เชื่อมต่อ MQTT เรียบร้อยแล้ว (" + mqttTopic + ")" : "⚪ โหมดจำลองในเครื่อง (Standalone Demo)"}
+        </p>
+
+        <!-- ESP32 Firmware Source Code Helper -->
+        <details style="margin-top:12px; background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
+          <summary style="font-weight:700; color:#38bdf8; cursor:pointer; font-size:0.78rem;">
+            📄 คลิกดูโค้ดตัวอย่าง Arduino C++ สำหรับแฟลชลง ESP32
+          </summary>
+          <pre style="margin-top:8px; font-family:monospace; font-size:0.7rem; color:#a7f3d0; background:#0f172a; padding:10px; border-radius:8px; overflow-x:auto; max-height:180px;">
+// Arduino C++ Sketch for ESP32 + Relays + DHT22
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+
+const char* ssid = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASS";
+const char* mqtt_server = "broker.hivemq.com";
+const char* topic_sub = "smarthome/YOUR_ROOM/#";
+const char* topic_pub = "smarthome/YOUR_ROOM/telemetry";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void setup() {
+  pinMode(18, OUTPUT); // Relay 1 (Living Light)
+  WiFi.begin(ssid, password);
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  String msg = "";
+  for (int i = 0; i &lt; length; i++) msg += (char)payload[i];
+  if (msg.indexOf("light.living") &gt; 0 &amp;&amp; msg.indexOf("\"on\":true") &gt; 0) digitalWrite(18, HIGH);
+  if (msg.indexOf("light.living") &gt; 0 &amp;&amp; msg.indexOf("\"on\":false") &gt; 0) digitalWrite(18, LOW);
+}
+
+void loop() {
+  if (!client.connected()) client.connect("ESP32_Gateway");
+  client.loop();
+}
+          </pre>
+        </details>
       </div>
     </details>
   `;
@@ -1031,29 +1093,58 @@ function bindRemoteEvents() {
 
   if (btnJoin) {
     btnJoin.onclick = () => {
-      const code = roomCodeInput.value.trim();
-      if (!code) return alert('กรุณาใส่รหัสห้องก่อนครับ');
+      const code = roomCodeInput ? roomCodeInput.value.trim() : '';
+      if (!code) return alert('กรุณาใส่รหัสบ้านก่อนครับ');
+      
+      const brokerInput = document.getElementById('mqttBrokerUrl');
+      const brokerUrl = brokerInput ? brokerInput.value.trim() : 'wss://broker.emqx.io:8084/mqtt';
+
       localStorage.setItem('room', code);
+      localStorage.setItem('mqtt_broker_url', brokerUrl);
+      
       mqttTopic = 'smarthome/' + code;
-      netStatus.textContent = '⏳ กำลังเชื่อมต่อ MQTT Broker...';
+      if (netStatus) netStatus.textContent = '⏳ กำลังเชื่อมต่อ MQTT Broker...';
 
       if (mqttClient) mqttClient.end(true);
-      mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+      try {
+        mqttClient = mqtt.connect(brokerUrl);
 
-      mqttClient.on('connect', () => {
-        netStatus.textContent = `✅ เชื่อมต่อห้อง "${code}" แล้ว (${myMode === 'remote' ? 'โหมดรีโมท' : 'โหมดตัวรับ'})`;
-        mqttClient.subscribe(mqttTopic);
-        toast(`เชื่อมต่อห้อง "${code}" สำเร็จ`);
-      });
+        mqttClient.on('connect', () => {
+          if (netStatus) netStatus.textContent = `🟢 เชื่อมต่อ MQTT "${code}" แล้ว [${brokerUrl}]`;
+          mqttClient.subscribe(mqttTopic);
+          mqttClient.subscribe(`${mqttTopic}/#`);
+          toast(`🟢 เชื่อมต่อ MQTT "${code}" สำเร็จแล้ว`);
+          render(true);
+        });
 
-      mqttClient.on('message', (t, msg) => {
-        if (myMode !== 'receiver') return;
-        try { showCommand(JSON.parse(msg.toString())); } catch (e) {}
-      });
+        mqttClient.on('message', (t, msg) => {
+          try {
+            const data = JSON.parse(msg.toString());
+            if (myMode === 'receiver') showCommand(data);
 
-      mqttClient.on('error', () => {
-        netStatus.textContent = '❌ เชื่อมต่อล้มเหลว กรุณาลองใหม่อีกครั้ง';
-      });
+            // Live bi-directional hardware sensor telemetry sync
+            if (data.temp != null) SEN.temp = data.temp;
+            if (data.hum != null) SEN.hum = data.hum;
+            if (data.pm != null) SEN.pm = data.pm;
+            if (data.lux != null) SEN.lux = data.lux;
+            if (data.motion != null) SEN.motion = data.motion;
+
+            // Live bi-directional physical relay/switch sync
+            if (data.id && S[data.id]) {
+              const { id, ...props } = data;
+              Object.assign(S[id], props);
+              saveState();
+              render(false);
+            }
+          } catch (e) {}
+        });
+
+        mqttClient.on('error', () => {
+          if (netStatus) netStatus.textContent = '❌ เชื่อมต่อล้มเหลว ตรวจสอบ URL หรืออินเทอร์เน็ต';
+        });
+      } catch (err) {
+        if (netStatus) netStatus.textContent = '❌ รูปแบบ URL MQTT ไม่ถูกต้อง';
+      }
     };
   }
 
