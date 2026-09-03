@@ -653,9 +653,12 @@ function vRemote() {
         <button class="ir-type-btn ${irDeviceType === 'custom' ? 'active' : ''}" data-irtype="custom">⚙️ คัสตอม</button>
       </div>
 
-      <!-- Touch-Friendly Minimal Brand Chips (No Mobile Page Jump) -->
-      <div id="irBrandChipsContainer" class="ir-brand-chips">
-        ${getIRBrandChipsHtml(irDeviceType)}
+      <!-- Elegant Glass Dropdown Selector for All World Brands -->
+      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 12px; margin-bottom: 14px; border: 1px solid var(--border-glass);">
+        <label for="irBrandSelect" style="font-size: 0.8rem; font-weight: 600; color: #cbd5e1;">🌐 ยี่ห้อ (Brand):</label>
+        <select id="irBrandSelect" style="background: rgba(18, 22, 32, 0.95); color: #fff; border: 1px solid var(--accent-indigo); padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; outline: none; width: 62%; cursor: pointer;">
+          ${getIRBrandDropdownOptions(irDeviceType)}
+        </select>
       </div>
 
       <!-- TV Minimal Controls -->
@@ -748,26 +751,76 @@ function vRemote() {
   `;
 }
 
-function getIRBrandChipsHtml(type) {
+function getIRBrandDropdownOptions(type) {
   const brandsMap = {
     tv: [
-      { id: 'samsung', name: 'Samsung' },
-      { id: 'lg', name: 'LG' },
-      { id: 'sony', name: 'Sony' },
-      { id: 'panasonic', name: 'Panasonic' },
-      { id: 'tcl', name: 'TCL' },
-      { id: 'sharp', name: 'Sharp' }
+      { id: 'samsung', name: 'Samsung TV (ซัมซุง)' },
+      { id: 'lg', name: 'LG Smart TV (แอลจี)' },
+      { id: 'sony', name: 'Sony Bravia (โซนี่)' },
+      { id: 'panasonic', name: 'Panasonic Viera (พานาโซนิค)' },
+      { id: 'tcl', name: 'TCL Smart TV (ทีซีแอล)' },
+      { id: 'sharp', name: 'Sharp Aquos (ชาร์ป)' },
+      { id: 'toshiba', name: 'Toshiba Regza (โตชิบา)' },
+      { id: 'philips', name: 'Philips Smart TV (ฟิลิปส์)' },
+      { id: 'hisense', name: 'Hisense Smart TV (ไฮเซ่นส์)' },
+      { id: 'xiaomi', name: 'Xiaomi Mi TV (เสี่ยวหมี่)' },
+      { id: 'haier', name: 'Haier Smart TV (ไฮเออร์)' },
+      { id: 'skyworth', name: 'Skyworth TV (สกายเวิร์ท)' },
+      { id: 'aconatic', name: 'Aconatic TV (อะโคนาติก)' },
+      { id: 'coocaa', name: 'Coocaa Smart TV (คูค่า)' },
+      { id: 'vizio', name: 'Vizio TV (วิซิโอ)' },
+      { id: 'hitachi', name: 'Hitachi TV (ฮิตาชิ)' },
+      { id: 'jvc', name: 'JVC Smart TV (เจวีซี)' },
+      { id: 'sanyo', name: 'Sanyo TV (ซันโย)' },
+      { id: 'singer', name: 'Singer TV (ซิงเกอร์)' },
+      { id: 'altron', name: 'Altron Thai TV (อัลตรอน)' },
+      { id: 'worldtech', name: 'Worldtech TV (เวิลด์เทค)' },
+      { id: 'custom', name: '⚙️ ยี่ห้ออื่น / Custom Hex' }
     ],
     ac: [
-      { id: 'daikin', name: 'Daikin' },
-      { id: 'mitsubishi', name: 'Mitsubishi' },
-      { id: 'carrier', name: 'Carrier' },
-      { id: 'haier', name: 'Haier' }
+      { id: 'daikin', name: 'Daikin (ไดกิ้น)' },
+      { id: 'mitsubishi', name: 'Mitsubishi Electric (มิตซูบิชิ อิเล็คทริค)' },
+      { id: 'mitsu_heavy', name: 'Mitsubishi Heavy Industries (เฮฟวี่ ดิวตี้)' },
+      { id: 'carrier', name: 'Carrier (แคเรียร์)' },
+      { id: 'haier', name: 'Haier (ไฮเออร์)' },
+      { id: 'panasonic', name: 'Panasonic (พานาโซนิค)' },
+      { id: 'samsung', name: 'Samsung (ซัมซุง)' },
+      { id: 'lg', name: 'LG (แอลจี)' },
+      { id: 'gree', name: 'Gree (กรี)' },
+      { id: 'tcl', name: 'TCL (ทีซีแอล)' },
+      { id: 'sharp', name: 'Sharp (ชาร์ป)' },
+      { id: 'toshiba', name: 'Toshiba (โตชิบา)' },
+      { id: 'fujitsu', name: 'Fujitsu (ฟูจิตสึ)' },
+      { id: 'york', name: 'York (ยอร์ค)' },
+      { id: 'central_air', name: 'Central Air (เซ็นทรัลแอร์)' },
+      { id: 'saijo', name: 'Saijo Denki (ไซโจ เดนกิ)' },
+      { id: 'amena', name: 'Amena (อามีน่า)' },
+      { id: 'tasaki', name: 'Tasaki (ทาซากิ)' },
+      { id: 'eminent', name: 'Eminent Air (เอมมิเน้นท์แอร์)' },
+      { id: 'midea', name: 'Midea (ไมเดีย)' },
+      { id: 'aux', name: 'Aux Air (อ็อกซ์)' },
+      { id: 'electrolux', name: 'Electrolux (อีเลคโทรลักซ์)' },
+      { id: 'chigo', name: 'Chigo (ชิโก้)' },
+      { id: 'star_air', name: 'Star Air (สตาร์แอร์)' },
+      { id: 'custom', name: '⚙️ ยี่ห้ออื่น / Custom Hex' }
     ],
     fan: [
-      { id: 'hatari', name: 'Hatari' },
-      { id: 'mitsubishi', name: 'Mitsubishi' },
-      { id: 'xiaomi', name: 'Xiaomi' }
+      { id: 'hatari', name: 'Hatari (ฮาตาริ)' },
+      { id: 'mitsubishi', name: 'Mitsubishi (มิตซูบิชิ)' },
+      { id: 'xiaomi', name: 'Xiaomi Smart Fan (เสี่ยวหมี่)' },
+      { id: 'panasonic', name: 'Panasonic (พานาโซนิค)' },
+      { id: 'kdk', name: 'KDK Fan (เคดีเค)' },
+      { id: 'dyson', name: 'Dyson Air Multiplier (ไดสัน)' },
+      { id: 'toshiba', name: 'Toshiba (โตชิบา)' },
+      { id: 'sharp', name: 'Sharp Plasmacluster (ชาร์ป)' },
+      { id: 'imarflex', name: 'Imarflex (อิมาร์เฟล็กซ์)' },
+      { id: 'hanabishi', name: 'Hanabishi (ฮานาบิชิ)' },
+      { id: 'victor', name: 'Victor (วิคเตอร์)' },
+      { id: 'clarte', name: 'Clarte (คลาร์เต้)' },
+      { id: 'masterkool', name: 'Masterkool (มาสเตอร์คูล)' },
+      { id: 'midea', name: 'Midea (ไมเดีย)' },
+      { id: 'honeywell', name: 'Honeywell (ฮันนี่เวลล์)' },
+      { id: 'custom', name: '⚙️ ยี่ห้ออื่น / Custom Hex' }
     ]
   };
 
@@ -775,15 +828,15 @@ function getIRBrandChipsHtml(type) {
   const activeBrand = selectedBrands[type] || list[0]?.id || 'samsung';
 
   return list.map(b => `
-    <button class="brand-chip ${activeBrand === b.id ? 'active' : ''}" data-brand="${b.id}">
+    <option value="${b.id}" ${activeBrand === b.id ? 'selected' : ''}>
       ${b.name}
-    </button>
+    </option>
   `).join('');
 }
 
 function triggerIRSignal(cmdType, hexCodeVal = null) {
   const activeBrand = selectedBrands[irDeviceType] || 'samsung';
-  const hexCode = hexCodeVal || IR_CODES[irDeviceType]?.[activeBrand]?.[cmdType] || '0x20DF10EF';
+  const hexCode = hexCodeVal || IR_CODES[irDeviceType]?.[activeBrand]?.[cmdType] || IR_CODES[irDeviceType]?.samsung?.[cmdType] || '0x20DF10EF';
 
   // 1. Tactile Vibration Feedback
   if (navigator.vibrate) navigator.vibrate([25, 10, 25]);
@@ -819,21 +872,6 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
   toast(`📡 ยิงคลื่น IR ${hexCode}`);
 }
 
-function bindBrandChips() {
-  document.querySelectorAll('.brand-chip').forEach(btn => {
-    btn.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const bId = btn.dataset.brand;
-      selectedBrands[irDeviceType] = bId;
-      localStorage.setItem('ir_brand_' + irDeviceType, bId);
-      document.querySelectorAll('.brand-chip').forEach(x => x.classList.toggle('active', x.dataset.brand === bId));
-      const statusEl = document.getElementById('irStatusText');
-      if (statusEl) statusEl.textContent = `เลือกยี่ห้อ ${bId.toUpperCase()} แล้ว (38.0 kHz)`;
-    };
-  });
-}
-
 function bindRemoteEvents() {
   document.querySelectorAll('.remote-segment-btn').forEach(b => {
     b.onclick = () => {
@@ -846,7 +884,17 @@ function bindRemoteEvents() {
     };
   });
 
-  bindBrandChips();
+  const brandSelect = document.getElementById('irBrandSelect');
+  if (brandSelect) {
+    brandSelect.onchange = (e) => {
+      e.stopPropagation();
+      const val = brandSelect.value;
+      selectedBrands[irDeviceType] = val;
+      localStorage.setItem('ir_brand_' + irDeviceType, val);
+      const statusEl = document.getElementById('irStatusText');
+      if (statusEl) statusEl.textContent = `เลือกยี่ห้อ [${val.toUpperCase()}] เรียบร้อยแล้ว (38.0 kHz)`;
+    };
+  }
 
   // IR Type Tabs Handler (TV, AC, Fan, Custom)
   document.querySelectorAll('.ir-type-btn').forEach(btn => {
@@ -860,10 +908,9 @@ function bindRemoteEvents() {
       document.getElementById('irFanView')?.classList.toggle('hide', irDeviceType !== 'fan');
       document.getElementById('irCustomView')?.classList.toggle('hide', irDeviceType !== 'custom');
 
-      const brandContainer = document.getElementById('irBrandChipsContainer');
-      if (brandContainer) {
-        brandContainer.innerHTML = getIRBrandChipsHtml(irDeviceType);
-        bindBrandChips();
+      const brandSelectEl = document.getElementById('irBrandSelect');
+      if (brandSelectEl) {
+        brandSelectEl.innerHTML = getIRBrandDropdownOptions(irDeviceType);
       }
     };
   });
