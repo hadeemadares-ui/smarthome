@@ -499,6 +499,14 @@ function vCam() {
     <div class="chart-box">
       <h3 style="font-size: 1rem; margin-bottom: 10px;"><i class="fa-solid fa-camera"></i> กล้อง 1 · หน้าบ้าน ${cam1Title}</h3>
       <canvas id="c1" width="640" height="360"></canvas>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <button id="btnStartRealCamBack" style="padding: 10px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(56, 189, 248, 0.3)); border: 1px solid rgba(99, 102, 241, 0.6); color: white; border-radius: 10px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">
+          📷 เปิดดูกล้องหลังสดๆ
+        </button>
+        <button id="btnStartRealCamFront" style="padding: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass); color: white; border-radius: 10px; font-weight: 600; font-size: 0.8rem; cursor: pointer;">
+          🤳 เปิดดูกล้องหน้า
+        </button>
+      </div>
     </div>
 
     <div class="chart-box">
@@ -1307,8 +1315,28 @@ function bindEvents() {
         localStorage.setItem('cam_stream_url', camStreamUrl);
         loadCustomCamStream(camStreamUrl);
         toast(camStreamUrl ? '📡 บันทึกลิงก์สตรีมกล้องแล้ว' : '⚪ ยกเลิกการเชื่อมสตรีมกล้องแล้ว');
-        render();
+        render(true);
       }
+    };
+  }
+
+  const btnRealBack = document.getElementById('btnStartRealCamBack');
+  if (btnRealBack) {
+    btnRealBack.onclick = () => {
+      camStreamUrl = '';
+      localStorage.removeItem('cam_stream_url');
+      customCamImg = null;
+      initCam('environment');
+    };
+  }
+
+  const btnRealFront = document.getElementById('btnStartRealCamFront');
+  if (btnRealFront) {
+    btnRealFront.onclick = () => {
+      camStreamUrl = '';
+      localStorage.removeItem('cam_stream_url');
+      customCamImg = null;
+      initCam('user');
     };
   }
 
@@ -1447,22 +1475,28 @@ function initMotion() {
   }, 500);
 }
 
-async function initCam() {
+async function initCam(facing = "environment") {
   try {
-    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    if (liveVid && liveVid.srcObject) {
+      liveVid.srcObject.getTracks().forEach(track => track.stop());
+    }
+    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing } });
     const v = document.createElement("video");
     v.srcObject = st;
     v.playsInline = true;
     v.muted = true;
     await v.play();
     liveVid = v;
+    toast(`📷 เปิดกล้องจริงสำเร็จแล้ว [${facing === "user" ? "กล้องหน้า" : "กล้องหลัง"}]`);
+    logEvent(`เปิดใช้งานกล้องจริงสดๆ (${facing})`, "ok");
+    render(true);
     
     const cv = document.createElement("canvas");
     cv.width = 64; cv.height = 48;
     const cx = cv.getContext("2d", { willReadFrequently: true });
     
     setInterval(() => {
-      if (v.videoWidth === 0) return;
+      if (!v || v.videoWidth === 0) return;
       cx.drawImage(v, 0, 0, 64, 48);
       const d = cx.getImageData(0, 0, 64, 48).data;
       let s = 0;
@@ -1472,7 +1506,8 @@ async function initCam() {
       PHONE.lux = Math.round(s / (d.length / 4) / 255 * 1000);
     }, 700);
   } catch (e) {
-    logEvent("ไม่ได้รับสิทธิ์กล้อง · ใช้ค่าจำลองแทน");
+    toast("⚠️ ไม่สามารถเปิดกล้องได้ โปรดยินยอมสิทธิ์กล้องบนเบราว์เซอร์");
+    logEvent("ไม่ได้รับสิทธิ์กล้อง · ใช้ค่าจำลองแทน", "warn");
   }
 }
 
