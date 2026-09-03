@@ -1146,31 +1146,37 @@ window.addEventListener("beforeinstallprompt", e => {
 });
 
 /* ══════════ Modal Permission Events ══════════ */
-document.getElementById("go").onclick = async () => {
-  if (typeof DeviceMotionEvent !== "undefined" && DeviceMotionEvent.requestPermission) {
-    try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
-  }
-  if (window.Notification) {
-    try { await Notification.requestPermission(); } catch (e) {}
-  }
-  initMotion();
-  await initCam();
-  initGeo();
-  initBatt();
-  if (navigator.wakeLock) {
-    try { await navigator.wakeLock.request("screen"); } catch (e) {}
-  }
-  PHONE.active = true;
-  document.getElementById("perm").remove();
-  logEvent("เชื่อมต่อเซ็นเซอร์มือถือสำเร็จ", "ok");
-  toast("📱 ใช้เซ็นเซอร์จริงจากมือถือแล้ว");
-  render();
-};
+const goBtn = document.getElementById("go");
+if (goBtn) {
+  goBtn.onclick = async () => {
+    if (typeof DeviceMotionEvent !== "undefined" && DeviceMotionEvent.requestPermission) {
+      try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
+    }
+    if (window.Notification) {
+      try { await Notification.requestPermission(); } catch (e) {}
+    }
+    initMotion();
+    await initCam();
+    initGeo();
+    initBatt();
+    if (navigator.wakeLock) {
+      try { await navigator.wakeLock.request("screen"); } catch (e) {}
+    }
+    PHONE.active = true;
+    document.getElementById("perm")?.remove();
+    logEvent("เชื่อมต่อเซ็นเซอร์มือถือสำเร็จ", "ok");
+    toast("📱 ใช้เซ็นเซอร์จริงจากมือถือแล้ว");
+    render();
+  };
+}
 
-document.getElementById("skip").onclick = () => {
-  document.getElementById("perm").remove();
-  render();
-};
+const skipBtn = document.getElementById("skip");
+if (skipBtn) {
+  skipBtn.onclick = () => {
+    document.getElementById("perm")?.remove();
+    render();
+  };
+}
 
 setInterval(() => {
   tickSensors();
