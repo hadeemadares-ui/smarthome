@@ -9,7 +9,7 @@ import { processVoiceCommand } from './services/voiceParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 // MIME types mapping
@@ -215,7 +215,7 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   const ips = getLocalIpAddresses();
   console.log('\n==================================================');
   console.log('  🏠 Smart Home Offline Server Running (Local Only)');
