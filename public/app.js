@@ -286,12 +286,26 @@ function vHome() {
     </div>
 
     <!-- Mode Selector Chips -->
-    <div style="margin-bottom: 20px;">
+    <div style="margin-bottom: 16px;">
       ${["home", "away"].map(m => `
         <span class="chip ${S._mode === m ? "act" : ""}" data-mode="${m}">
           ${m === "home" ? "🏠 โหมดอยู่บ้าน (Home)" : "🚗 โหมดไม่อยู่บ้าน (Away)"}
         </span>
       `).join("")}
+    </div>
+
+    <!-- Quick IoT Remote Shortcut Banner -->
+    <div class="remote-shortcut-card" onclick="V='remote'; render(); window.scrollTo(0,0);" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(56, 189, 248, 0.3)); border: 1px solid rgba(99, 102, 241, 0.5); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-indigo), #38bdf8); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">
+          <i class="fa-solid fa-gamepad"></i>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 1rem; color: #fff;">🎛️ เปิดหน้าแผงควบคุม รีโมท IoT</div>
+          <div style="font-size: 0.8rem; color: #cbd5e1;">โหมดรีโมทควบคุมไร้สาย MQTT / Bluetooth (BLE)</div>
+        </div>
+      </div>
+      <i class="fa-solid fa-chevron-right" style="color: var(--accent-blue); font-size: 18px;"></i>
     </div>
 
     <!-- Quick Scenes Carousel -->
