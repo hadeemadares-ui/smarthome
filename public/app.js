@@ -233,8 +233,10 @@ function runRules() {
   PREV = { ...SEN };
 }
 
+let lastRenderedView = '';
+
 /* ══════════ Views & UI Renderer ══════════ */
-function render() {
+function render(force = false) {
   const clockHeader = document.getElementById("clockHeader");
   if (clockHeader) {
     clockHeader.textContent = PHONE.active ? "📱 เซ็นเซอร์มือถือจริง" : "🟢 100% Local Isolated";
@@ -245,14 +247,61 @@ function render() {
     n.classList.toggle("active", n.dataset.v === V);
   });
   
-  const viewsMap = { home: vHome, cam: vCam, energy: vEnergy, auto: vAuto, remote: vRemote, log: vLog };
-  document.getElementById("view").innerHTML = viewsMap[V] ? viewsMap[V]() : vHome();
+  const viewEl = document.getElementById("view");
+  if (!viewEl) return;
 
-  if (V === "cam") drawCams();
-  if (V === "energy") drawChart();
-  if (V === "remote") bindRemoteEvents();
-  
-  bindEvents();
+  if (force || V !== lastRenderedView || !viewEl.children.length) {
+    const viewsMap = { home: vHome, cam: vCam, energy: vEnergy, auto: vAuto, remote: vRemote, log: vLog };
+    viewEl.innerHTML = viewsMap[V] ? viewsMap[V]() : vHome();
+    lastRenderedView = V;
+
+    if (V === "cam") drawCams();
+    if (V === "energy") drawChart();
+    if (V === "remote") bindRemoteEvents();
+    bindEvents();
+  } else {
+    // In-place selective DOM update to eliminate lag & DOM rebuilding
+    if (V === "home") updateHomeDOM();
+    if (V === "cam") drawCams();
+  }
+}
+
+function updateHomeDOM() {
+  const activeCount = DEVICES.filter(d => S[d.id].on).length;
+  const watts = Math.round(powerNow());
+  const dailyCost = (S._kwh[6].v * RATE).toFixed(2);
+
+  const heroWatts = document.getElementById("heroWatts");
+  if (heroWatts) heroWatts.textContent = `${watts} W`;
+
+  const heroActiveDevs = document.getElementById("heroActiveDevs");
+  if (heroActiveDevs) heroActiveDevs.textContent = `${activeCount} / ${DEVICES.length}`;
+
+  const heroDailyCost = document.getElementById("heroDailyCost");
+  if (heroDailyCost) heroDailyCost.textContent = `฿${dailyCost}`;
+
+  const heroTemp = document.getElementById("heroTemp");
+  if (heroTemp) heroTemp.textContent = `${SEN.temp}°C`;
+
+  DEVICES.forEach(d => {
+    const cardEl = document.querySelector(`.card[data-id="${d.id}"]`);
+    if (cardEl) {
+      const isOn = S[d.id].on;
+      cardEl.classList.toggle("on", isOn);
+      const swEl = cardEl.querySelector(".sw");
+      if (swEl) swEl.classList.toggle("on", isOn);
+      const subEl = cardEl.querySelector(".device-sub");
+      if (subEl) {
+        if (d.bri != null) {
+          subEl.textContent = `${d.room} • ${isOn ? "เปิดอยู่ · " + S[d.id].bri + "%" : "ปิดอยู่"}`;
+        } else if (d.pos != null) {
+          subEl.textContent = `${d.room} • ${S[d.id].pos > 0 ? "เปิด " + S[d.id].pos + "%" : "ปิดอยู่"}`;
+        } else {
+          subEl.textContent = `${d.room} • ${isOn ? "เปิดอยู่" : "ปิดอยู่"}`;
+        }
+      }
+    }
+  });
 }
 
 function vHome() {
@@ -266,7 +315,7 @@ function vHome() {
       <div class="stat-card">
         <div class="stat-icon-box amber"><i class="fa-solid fa-bolt"></i></div>
         <div>
-          <div class="stat-value">${watts} W</div>
+          <div id="heroWatts" class="stat-value">${watts} W</div>
           <div class="stat-label">การใช้ไฟตอนนี้</div>
         </div>
       </div>
@@ -274,7 +323,7 @@ function vHome() {
       <div class="stat-card">
         <div class="stat-icon-box indigo"><i class="fa-solid fa-power-off"></i></div>
         <div>
-          <div class="stat-value">${activeCount} / ${DEVICES.length}</div>
+          <div id="heroActiveDevs" class="stat-value">${activeCount} / ${DEVICES.length}</div>
           <div class="stat-label">อุปกรณ์เปิดอยู่</div>
         </div>
       </div>
@@ -282,7 +331,7 @@ function vHome() {
       <div class="stat-card">
         <div class="stat-icon-box green"><i class="fa-solid fa-coins"></i></div>
         <div>
-          <div class="stat-value">฿${dailyCost}</div>
+          <div id="heroDailyCost" class="stat-value">฿${dailyCost}</div>
           <div class="stat-label">ประมาณการค่าไฟวันนี้</div>
         </div>
       </div>
@@ -290,7 +339,7 @@ function vHome() {
       <div class="stat-card">
         <div class="stat-icon-box blue"><i class="fa-solid fa-temperature-three-quarters"></i></div>
         <div>
-          <div class="stat-value">${SEN.temp}°C</div>
+          <div id="heroTemp" class="stat-value">${SEN.temp}°C</div>
           <div class="stat-label">อุณหภูมิในบ้าน (AQI ${SEN.pm})</div>
         </div>
       </div>
@@ -1268,7 +1317,7 @@ function bindEvents() {
       document.querySelectorAll(".room-tabs .tab-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       currentRoom = btn.dataset.room;
-      render();
+      render(true);
     };
   });
 

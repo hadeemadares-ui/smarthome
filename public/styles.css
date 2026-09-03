@@ -736,6 +736,14 @@ input:checked + .toggle-slider:before {
 }
 .ir-brand-chips::-webkit-scrollbar { display: none; }
 
+/* GPU Hardware Acceleration for Smooth 60fps Mobile Performance */
+.card, .stat-card, .hero-stats, .chart-box, .remote-shortcut-card, .scene-card {
+  transform: translateZ(0);
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .app-header { padding: 14px 16px; }
