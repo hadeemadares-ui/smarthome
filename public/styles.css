@@ -574,6 +574,70 @@ input:checked + .toggle-slider:before {
   box-shadow: 0 4px 15px var(--accent-indigo-glow);
 }
 
+/* IR Blaster & Hardware Emitter UI */
+.ir-pulse-emitter {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ef4444 0%, rgba(239, 68, 68, 0.15) 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px auto;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  transition: all 0.2s ease;
+  color: white;
+  font-size: 20px;
+}
+.ir-pulse-emitter.transmitting {
+  animation: irPulseGlow 0.35s infinite alternate;
+  background: radial-gradient(circle, #ff0055 0%, rgba(255, 0, 85, 0.5) 100%);
+  box-shadow: 0 0 35px #ff0055;
+  transform: scale(1.15);
+}
+@keyframes irPulseGlow {
+  0% { transform: scale(1); box-shadow: 0 0 15px #ef4444; }
+  100% { transform: scale(1.2); box-shadow: 0 0 40px #ff0055; }
+}
+
+.ir-type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.ir-type-btn {
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.ir-type-btn.active {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(249, 115, 22, 0.25));
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.ir-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .app-header { padding: 14px 16px; }

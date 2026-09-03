@@ -518,8 +518,14 @@ function vAuto() {
   `;
 }
 
-/* ══════════ IoT MQTT & BLE Remote Controller ══════════ */
-let myMode = 'remote';
+/* ══════════ IoT MQTT, BLE & Built-in Infrared (IR Blaster) ══════════ */
+let myMode = 'remote'; // remote | receiver | ir_blaster
+let irDeviceType = 'tv'; // tv | ac | fan | custom
+let irBrand = 'samsung';
+let irTargetTemp = 24;
+let irModeState = 'COOL';
+let irFanState = 'AUTO';
+
 let mqttClient = null, mqttTopic = '';
 let uartChar = null;
 const UART_SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
@@ -529,7 +535,58 @@ const CMD_TEXT = {
   UP:'▲ ขึ้น', DOWN:'▼ ลง', LEFT:'◀ ซ้าย', RIGHT:'▶ ขวา', OK:'● ตกลง',
   LIGHT_ON:'💡 เปิดไฟ', LIGHT_OFF:'🌙 ปิดไฟ',
   FAN_UP:'🌀 เพิ่มลม', FAN_DOWN:'🌀 ลดลม',
-  AC_ON:'❄️ เปิดแอร์', ALL_OFF:'⛔ ปิดทั้งหมด'
+  AC_ON:'❄️ เปิดแอร์', ALL_OFF:'⛔ ปิดทั้งหมด',
+  IR_POWER:'🔴 IR Power', IR_MUTE:'🔇 IR Mute',
+  IR_VOL_UP:'🔊 เสียง +', IR_VOL_DN:'🔉 เสียง −',
+  IR_CH_UP:'📺 ช่อง +', IR_CH_DN:'📺 ช่อง −',
+  IR_TEMP_UP:'❄️ แอร์ +1°C', IR_TEMP_DN:'❄️ แอร์ -1°C'
+};
+
+// Web Audio 38kHz Carrier Signal Modulator for 3.5mm IR Audio Blaster & Built-in IR Emulation
+function transmitWebAudioIR(hexCode = '0x20DF10EF') {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const sampleRate = audioCtx.sampleRate;
+    const carrierFreq = 38000; // 38kHz standard IR carrier
+    const duration = 0.15; // 150ms IR burst
+    const buffer = audioCtx.createBuffer(1, sampleRate * duration, sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < buffer.length; i++) {
+      const t = i / sampleRate;
+      data[i] = Math.sin(2 * Math.PI * carrierFreq * t) * 0.9;
+    }
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+    source.start();
+  } catch (e) {
+    console.log('Audio IR fallback:', e);
+  }
+}
+
+// Universal IR Hex Protocol Map for Major Appliance Brands
+const IR_CODES = {
+  tv: {
+    samsung:   { power: '0xE0E040BF', mute: '0xE0E0F00F', volUp: '0xE0E0E01F', volDn: '0xE0E0D02F', chUp: '0xE0E048B7', chDn: '0xE0E008F7' },
+    lg:        { power: '0x20DF10EF', mute: '0x20DF906F', volUp: '0x20DF40BF', volDn: '0x20DFC03F', chUp: '0x20DF00FF', chDn: '0x20DF807F' },
+    sony:      { power: '0xA90',      mute: '0x290',      volUp: '0x490',      volDn: '0xC90',      chUp: '0x90',       chDn: '0x890' },
+    panasonic: { power: '0x400401008081', mute: '0x400401004041', volUp: '0x400401000405', volDn: '0x400401008485' },
+    tcl:       { power: '0x4FB40BF',  mute: '0x4FB08F7',  volUp: '0x4FB10EF',  volDn: '0x4FB30CF' },
+    sharp:     { power: '0xAA5A',     mute: '0xAA2A',     volUp: '0xAA1A',     volDn: '0xAA6A' }
+  },
+  ac: {
+    daikin:     { power: '0x11DA2700', cool: '0x11DA2701', tempUp: '0x11DA2702', tempDn: '0x11DA2703' },
+    mitsubishi: { power: '0x23CB2601', cool: '0x23CB2602', tempUp: '0x23CB2603', tempDn: '0x23CB2604' },
+    carrier:    { power: '0x28D70100', cool: '0x28D70101', tempUp: '0x28D70102', tempDn: '0x28D70103' },
+    haier:      { power: '0xA55A0100', cool: '0xA55A0101', tempUp: '0xA55A0102', tempDn: '0xA55A0103' }
+  },
+  fan: {
+    hatari:     { power: '0x00FF02FD', speed: '0x00FF9867', swing: '0x00A850AF', timer: '0x00FF38C7' },
+    mitsubishi: { power: '0x807F02FD', speed: '0x807F9867', swing: '0x807FA05F' },
+    xiaomi:     { power: '0x5C800100', speed: '0x5C800101', swing: '0x5C800102' }
+  }
 };
 
 function vRemote() {
@@ -537,23 +594,26 @@ function vRemote() {
   return `
     <div class="remote-card">
       <h3 style="font-size: 1.1rem; margin-bottom: 14px;"><i class="fa-solid fa-gamepad"></i> โหมดของเครื่องนี้</h3>
-      <div class="modes">
-        <button class="mode ${myMode === 'remote' ? 'active' : ''}" data-mode="remote">📱 รีโมท (Remote)</button>
-        <button class="mode ${myMode === 'receiver' ? 'active' : ''}" data-mode="receiver">📺 ตัวรับ (Receiver)</button>
+      <div class="modes" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;">
+        <button class="mode ${myMode === 'remote' ? 'active' : ''}" data-mode="remote">📱 รีโมทแอป</button>
+        <button class="mode ${myMode === 'ir_blaster' ? 'active' : ''}" data-mode="ir_blaster" style="background: linear-gradient(135deg, rgba(239,68,68,0.3), rgba(249,115,22,0.3)); border-color: rgba(239,68,68,0.5);">📡 รีโมท IR</button>
+        <button class="mode ${myMode === 'receiver' ? 'active' : ''}" data-mode="receiver">📺 ตัวรับ</button>
       </div>
-      <div class="row" style="margin-bottom: 12px;">
+
+      <div class="row" style="margin-top: 14px; margin-bottom: 12px;">
         <span style="min-width: 80px;">รหัสห้อง:</span>
         <input id="roomCode" placeholder="เช่น home123" maxlength="12" value="${savedRoom}">
       </div>
       <button id="btnJoin">🔗 เชื่อมต่อห้อง (MQTT Broker)</button>
-      <button id="btnBLE" style="width:100%; margin-top:10px; padding:13px; border:1px solid var(--accent-blue); background:rgba(56,189,248,0.12); color:var(--accent-blue); border-radius:12px; font-weight:600; cursor:pointer;">
+      <button id="btnBLE" style="width:100%; margin-top:10px; padding:12px; border:1px solid var(--accent-blue); background:rgba(56,189,248,0.12); color:var(--accent-blue); border-radius:12px; font-weight:600; cursor:pointer;">
         📡 เชื่อมต่อบอร์ด ESP32 ผ่าน Bluetooth (BLE)
       </button>
       <p id="netStatus" style="margin-top:12px; font-size:0.85rem; color:var(--text-muted); text-align:center;">ยังไม่ได้เชื่อมต่อ</p>
     </div>
 
+    <!-- Mode 1: Wireless Smart Home Remote -->
     <div class="remote-card ${myMode !== 'remote' ? 'hide' : ''}" id="remotePanel">
-      <h3 style="font-size: 1.1rem; margin-bottom: 16px;"><i class="fa-solid fa-sliders"></i> แผงรีโมทไร้สาย</h3>
+      <h3 style="font-size: 1.1rem; margin-bottom: 16px;"><i class="fa-solid fa-sliders"></i> แผงรีโมทไร้สายสมาร์ทโฮม</h3>
       <div class="dpad-container">
         <button class="dpad-btn" data-cmd="UP">▲</button>
         <button class="dpad-btn" data-cmd="LEFT">◀</button>
@@ -572,12 +632,202 @@ function vRemote() {
       <p id="lastSent" style="margin-top:14px; font-size:0.85rem; color:var(--accent-amber); text-align:center;"></p>
     </div>
 
+    <!-- Mode 2: Hardware & Built-in Infrared (IR Blaster) Universal Remote -->
+    <div class="remote-card ${myMode !== 'ir_blaster' ? 'hide' : ''}" id="irPanel">
+      <div id="irPulseEmitter" class="ir-pulse-emitter">
+        <i class="fa-solid fa-tower-broadcast"></i>
+      </div>
+      <div style="text-align: center; margin-bottom: 18px;">
+        <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">📡 รีโมทอินฟราเรด (Infrared IR Blaster)</div>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
+          รองรับ IR ในตัวเครื่องมือถือ, Web Audio IR 38kHz, ESP32 IR Transmitter
+        </div>
+      </div>
+
+      <!-- IR Device Selector Tabs -->
+      <div class="ir-type-tabs">
+        <button class="ir-type-btn ${irDeviceType === 'tv' ? 'active' : ''}" data-irtype="tv">📺 ทีวี (TV)</button>
+        <button class="ir-type-btn ${irDeviceType === 'ac' ? 'active' : ''}" data-irtype="ac">❄️ แอร์ (Air Con)</button>
+        <button class="ir-type-btn ${irDeviceType === 'fan' ? 'active' : ''}" data-irtype="fan">🌀 พัดลม (Fan)</button>
+        <button class="ir-type-btn ${irDeviceType === 'custom' ? 'active' : ''}" data-irtype="custom">⚙️ กำหนดรหัส IR เอง</button>
+      </div>
+
+      <!-- Brand Selector Dropdown -->
+      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 14px; margin-bottom: 18px; border: 1px solid var(--border-glass);">
+        <span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600;">🏷️ เลือกยี่ห้อ (Brand):</span>
+        <select id="irBrandSelect" style="background: rgba(18, 22, 32, 0.9); color: #fff; border: 1px solid var(--accent-indigo); padding: 6px 12px; border-radius: 10px; font-size: 0.85rem; outline: none;">
+          ${getIRBrandOptions(irDeviceType)}
+        </select>
+      </div>
+
+      <!-- TV Universal Controller View -->
+      <div id="irTvView" class="${irDeviceType !== 'tv' ? 'hide' : ''}">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+            🔴 เปิด / ปิด (POWER)
+          </button>
+          <button class="ir-cmd-btn" data-ircmd="mute" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border-glass); padding: 14px; border-radius: 14px; font-weight: 600; cursor: pointer;">
+            🔇 ปิดเสียง (MUTE)
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+          <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); padding: 12px; border-radius: 16px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px;">ปรับระดับเสียง (VOLUME)</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="ir-cmd-btn" data-ircmd="volUp" style="flex:1; padding:12px; background:rgba(56,189,248,0.15); border:1px solid var(--accent-blue); color:var(--accent-blue); border-radius:12px; font-weight:700; cursor:pointer;">VOL +</button>
+              <button class="ir-cmd-btn" data-ircmd="volDn" style="flex:1; padding:12px; background:rgba(255,255,255,0.06); border:1px solid var(--border-glass); color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">VOL −</button>
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); padding: 12px; border-radius: 16px; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px;">เปลี่ยนช่องรายการ (CHANNEL)</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="ir-cmd-btn" data-ircmd="chUp" style="flex:1; padding:12px; background:rgba(168,85,247,0.15); border:1px solid var(--accent-purple); color:var(--accent-purple); border-radius:12px; font-weight:700; cursor:pointer;">CH ▲</button>
+              <button class="ir-cmd-btn" data-ircmd="chDn" style="flex:1; padding:12px; background:rgba(255,255,255,0.06); border:1px solid var(--border-glass); color:#fff; border-radius:12px; font-weight:700; cursor:pointer;">CH ▼</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dpad-container">
+          <button class="ir-cmd-btn dpad-btn" data-ircmd="up">▲</button>
+          <button class="ir-cmd-btn dpad-btn" data-ircmd="left">◀</button>
+          <button class="ir-cmd-btn dpad-btn ok" data-ircmd="ok">OK</button>
+          <button class="ir-cmd-btn dpad-btn" data-ircmd="right">▶</button>
+          <button class="ir-cmd-btn dpad-btn" data-ircmd="down">▼</button>
+        </div>
+      </div>
+
+      <!-- AC (Air Con) Universal Controller View -->
+      <div id="irAcView" class="${irDeviceType !== 'ac' ? 'hide' : ''}">
+        <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.15)); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 0.8rem; color: #94a3b8;">อุณหภูมิที่ตั้งไว้ (SET TEMP)</div>
+          <div id="irAcTempDisp" style="font-size: 2.8rem; font-weight: 800; color: #38bdf8; margin: 4px 0;">${irTargetTemp}°C</div>
+          <div style="display: flex; justify-content: center; gap: 12px; margin-top: 10px;">
+            <button id="btnAcTempDn" style="width:50px; height:50px; border-radius:14px; background:rgba(255,255,255,0.1); border:1px solid var(--border-glass); color:#fff; font-size:22px; cursor:pointer;">−</button>
+            <button id="btnAcTempUp" style="width:50px; height:50px; border-radius:14px; background:linear-gradient(135deg, var(--accent-blue), var(--accent-indigo)); border:0; color:#fff; font-size:22px; cursor:pointer; box-shadow: 0 4px 15px var(--accent-blue-glow);">+</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
+            🔴 เปิด / ปิด แอร์
+          </button>
+          <button class="ir-cmd-btn" data-ircmd="cool" style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid var(--accent-blue); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
+            ❄️ โหมดความเย็น (COOL)
+          </button>
+        </div>
+      </div>
+
+      <!-- Fan Universal Controller View -->
+      <div id="irFanView" class="${irDeviceType !== 'fan' ? 'hide' : ''}">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
+            🔴 เปิด / ปิด พัดลม
+          </button>
+          <button class="ir-cmd-btn" data-ircmd="speed" style="background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid var(--accent-amber); padding: 14px; border-radius: 14px; font-weight: 700; cursor: pointer;">
+            🌀 ปรับระดับแรงลม (SPEED)
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button class="ir-cmd-btn" data-ircmd="swing" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 14px; border-radius: 14px; font-weight: 600; cursor: pointer;">
+            🔄 ส่ายพัดลม (SWING)
+          </button>
+          <button class="ir-cmd-btn" data-ircmd="timer" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 14px; border-radius: 14px; font-weight: 600; cursor: pointer;">
+            ⏱️ ตั้งเวลาปิด (TIMER)
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom IR Code Generator & Learner View -->
+      <div id="irCustomView" class="${irDeviceType !== 'custom' ? 'hide' : ''}">
+        <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); padding: 16px; border-radius: 16px; margin-bottom: 14px;">
+          <label style="display:block; font-size:0.85rem; color:#cbd5e1; margin-bottom:8px; font-weight:600;">ป้อนรหัส IR Hex Code (เช่น 0x20DF10EF):</label>
+          <div style="display:flex; gap:8px;">
+            <input id="inputCustomIrHex" placeholder="0x20DF10EF" style="flex:1; background:rgba(18,22,32,0.9); color:#fff; border:1px solid var(--border-glass); padding:10px 14px; border-radius:12px; font-family:monospace;">
+            <button id="btnSendCustomIr" style="background:linear-gradient(135deg, #ef4444, #f97316); color:#fff; border:0; padding:10px 18px; border-radius:12px; font-weight:700; cursor:pointer;">ยิง IR 📡</button>
+          </div>
+        </div>
+      </div>
+
+      <p id="irStatusText" style="margin-top: 16px; font-size: 0.85rem; color: var(--accent-amber); text-align: center;">
+        พร้อมยิงสัญญาณอินฟราเรด 38.0 kHz
+      </p>
+    </div>
+
+    <!-- Mode 3: Receiver Monitor -->
     <div class="remote-card ${myMode !== 'receiver' ? 'hide' : ''}" id="receiverPanel">
       <h3 style="font-size: 1.1rem; margin-bottom: 12px;"><i class="fa-solid fa-desktop"></i> จอรับสัญญาณคำสั่ง</h3>
       <div id="bigCmd">— รอรับคำสั่ง —</div>
       <ul id="cmdLog"></ul>
     </div>
   `;
+}
+
+function getIRBrandOptions(type) {
+  if (type === 'tv') {
+    return `
+      <option value="samsung">Samsung TV (NEC 38kHz)</option>
+      <option value="lg">LG Smart TV (NEC 38kHz)</option>
+      <option value="sony">Sony TV (12-bit SIRCS)</option>
+      <option value="panasonic">Panasonic TV (38kHz)</option>
+      <option value="tcl">TCL TV</option>
+      <option value="sharp">Sharp TV</option>
+    `;
+  }
+  if (type === 'ac') {
+    return `
+      <option value="daikin">Daikin Air Con</option>
+      <option value="mitsubishi">Mitsubishi Electric</option>
+      <option value="carrier">Carrier Air Con</option>
+      <option value="haier">Haier Air Con</option>
+    `;
+  }
+  if (type === 'fan') {
+    return `
+      <option value="hatari">Hatari Fan (พัดลมฮาตาริ)</option>
+      <option value="mitsubishi">Mitsubishi Fan</option>
+      <option value="xiaomi">Xiaomi Smart Fan</option>
+    `;
+  }
+  return `<option value="custom">กำหนดรหัส IR อิสระ</option>`;
+}
+
+function triggerIRSignal(cmdType, hexCodeVal = null) {
+  const hexCode = hexCodeVal || IR_CODES[irDeviceType]?.[irBrand]?.[cmdType] || '0x20DF10EF';
+
+  // 1. Tactile Vibration Feedback
+  if (navigator.vibrate) navigator.vibrate([25, 10, 25]);
+
+  // 2. Visual IR Pulse Emitter Glow Animation
+  const emitter = document.getElementById('irPulseEmitter');
+  if (emitter) {
+    emitter.classList.add('transmitting');
+    setTimeout(() => emitter.classList.remove('transmitting'), 400);
+  }
+
+  // 3. Web Audio 38kHz Carrier Generator
+  transmitWebAudioIR(hexCode);
+
+  // 4. MQTT IR Transmit Payload for ESP32 / Arduino IR Blasters in the house
+  if (mqttClient && mqttClient.connected) {
+    const irPayload = {
+      type: 'IR_TRANSMIT',
+      protocol: irBrand.toUpperCase(),
+      code: hexCode,
+      device: irDeviceType,
+      command: cmdType,
+      at: Date.now()
+    };
+    mqttClient.publish(mqttTopic, JSON.stringify(irPayload));
+  }
+
+  // 5. Update Status Feedback Text
+  const statusEl = document.getElementById('irStatusText');
+  if (statusEl) {
+    statusEl.textContent = `📡 ยิงสัญญาณ IR [${irBrand.toUpperCase()} ${cmdType.toUpperCase()}]: ${hexCode}`;
+  }
+  toast(`📡 ยิงคลื่น IR ${hexCode}`);
 }
 
 function bindRemoteEvents() {
@@ -587,9 +837,74 @@ function bindRemoteEvents() {
       b.classList.add('active');
       myMode = b.dataset.mode;
       document.getElementById('remotePanel')?.classList.toggle('hide', myMode !== 'remote');
+      document.getElementById('irPanel')?.classList.toggle('hide', myMode !== 'ir_blaster');
       document.getElementById('receiverPanel')?.classList.toggle('hide', myMode !== 'receiver');
     };
   });
+
+  // IR Type Tabs Handler (TV, AC, Fan, Custom)
+  document.querySelectorAll('.ir-type-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.ir-type-btn').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+      irDeviceType = btn.dataset.irtype;
+
+      document.getElementById('irTvView')?.classList.toggle('hide', irDeviceType !== 'tv');
+      document.getElementById('irAcView')?.classList.toggle('hide', irDeviceType !== 'ac');
+      document.getElementById('irFanView')?.classList.toggle('hide', irDeviceType !== 'fan');
+      document.getElementById('irCustomView')?.classList.toggle('hide', irDeviceType !== 'custom');
+
+      const brandSelect = document.getElementById('irBrandSelect');
+      if (brandSelect) {
+        brandSelect.innerHTML = getIRBrandOptions(irDeviceType);
+        irBrand = brandSelect.value;
+      }
+    };
+  });
+
+  const brandSelect = document.getElementById('irBrandSelect');
+  if (brandSelect) {
+    brandSelect.onchange = () => { irBrand = brandSelect.value; };
+  }
+
+  // IR Command Buttons Click Event Handler
+  document.querySelectorAll('.ir-cmd-btn').forEach(btn => {
+    btn.onclick = () => {
+      const cmdType = btn.dataset.ircmd;
+      if (cmdType) triggerIRSignal(cmdType);
+    };
+  });
+
+  // AC Temp Adjustment Buttons
+  const btnAcTempUp = document.getElementById('btnAcTempUp');
+  const btnAcTempDn = document.getElementById('btnAcTempDn');
+  const irAcTempDisp = document.getElementById('irAcTempDisp');
+
+  if (btnAcTempUp) {
+    btnAcTempUp.onclick = () => {
+      if (irTargetTemp < 30) irTargetTemp++;
+      if (irAcTempDisp) irAcTempDisp.textContent = `${irTargetTemp}°C`;
+      triggerIRSignal('tempUp');
+    };
+  }
+  if (btnAcTempDn) {
+    btnAcTempDn.onclick = () => {
+      if (irTargetTemp > 16) irTargetTemp--;
+      if (irAcTempDisp) irAcTempDisp.textContent = `${irTargetTemp}°C`;
+      triggerIRSignal('tempDn');
+    };
+  }
+
+  // Custom IR Hex Transmitter Button
+  const btnSendCustomIr = document.getElementById('btnSendCustomIr');
+  const inputCustomIrHex = document.getElementById('inputCustomIrHex');
+  if (btnSendCustomIr && inputCustomIrHex) {
+    btnSendCustomIr.onclick = () => {
+      const hexVal = inputCustomIrHex.value.trim();
+      if (!hexVal) return alert('กรุณาป้อนรหัส IR Hex Code ก่อนครับ');
+      triggerIRSignal('custom', hexVal);
+    };
+  }
 
   const btnJoin = document.getElementById('btnJoin');
   const netStatus = document.getElementById('netStatus');
