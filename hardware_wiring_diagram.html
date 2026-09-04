@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>Smart Home Hardware Wiring Diagram</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Prompt', sans-serif; background-color: #0b1120; color: #f8fafc; }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .pin-badge {
+      font-family: monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .glow-wire {
+      filter: drop-shadow(0 0 6px currentColor);
+    }
+  </style>
+</head>
+<body class="antialiased p-3 sm:p-5 min-h-screen flex items-center justify-center">
+  <div class="glass-card rounded-2xl p-4 sm:p-6 shadow-2xl border border-white/10 max-w-4xl w-full">
+    
+    <!-- Title Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-1">
+          🔌 Visual Hardware Wiring Schematic
+        </div>
+        <h2 class="text-lg sm:text-xl font-bold text-white">แผนผังต่อสายฮาร์ดแวร์จริง (ESP32 Smart Home Diagram)</h2>
+        <p class="text-xs text-slate-400">ภาพจำลองการเสียบสายไฟ Jumper Wires ระหว่างบอร์ด ESP32 กับรีเลย์และเซนเซอร์</p>
+      </div>
+      <div class="flex gap-2 text-xs">
+        <button onclick="highlightWire('all')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-all shadow">
+          🌈 แสดงสายทั้งหมด
+        </button>
+        <button onclick="highlightWire('relay')" class="px-3 py-1.5 rounded-lg bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-500/30 font-semibold transition-all">
+          ⚡ เฉพาะรีเลย์
+        </button>
+        <button onclick="highlightWire('sensors')" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 border border-emerald-500/30 font-semibold transition-all">
+          🌡️ เฉพาะเซนเซอร์
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Visual Wiring Canvas (Interactive SVG Diagram) -->
+    <div class="my-5 relative bg-slate-950/80 rounded-xl p-4 border border-white/5 overflow-hidden">
+      
+      <!-- SVG Wire Overlay Lines -->
+      <svg class="w-full h-[360px] sm:h-[420px]" viewBox="0 0 800 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+        
+        <!-- Background Grid Pattern -->
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="800" height="420" fill="url(#grid)" />
+
+        <!-- WIRE 1: Power VCC 5V (Red Wire) -->
+        <path id="w-vcc" d="M 390 120 C 390 50, 600 50, 620 100" stroke="#ef4444" stroke-width="3.5" stroke-dasharray="0" class="wire-line wire-power glow-wire transition-all duration-300" />
+        
+        <!-- WIRE 2: Ground GND (Black Wire) -->
+        <path id="w-gnd" d="M 390 140 C 390 70, 600 70, 620 120" stroke="#64748b" stroke-width="3.5" class="wire-line wire-power glow-wire transition-all duration-300" />
+
+        <!-- WIRE 3: Relay IN1 - GPIO 18 (Yellow Wire) -->
+        <path id="w-in1" d="M 390 195 C 480 195, 520 150, 620 150" stroke="#facc15" stroke-width="3" class="wire-line wire-relay glow-wire transition-all duration-300" />
+        
+        <!-- WIRE 4: Relay IN2 - GPIO 19 (Green Wire) -->
+        <path id="w-in2" d="M 390 220 C 480 220, 520 170, 620 170" stroke="#4ade80" stroke-width="3" class="wire-line wire-relay glow-wire transition-all duration-300" />
+        
+        <!-- WIRE 5: Relay IN3 - GPIO 21 (Blue Wire) -->
+        <path id="w-in3" d="M 390 245 C 480 245, 520 190, 620 190" stroke="#38bdf8" stroke-width="3" class="wire-line wire-relay glow-wire transition-all duration-300" />
+        
+        <!-- WIRE 6: Relay IN4 - GPIO 22 (Purple Wire) -->
+        <path id="w-in4" d="M 390 270 C 480 270, 520 210, 620 210" stroke="#c084fc" stroke-width="3" class="wire-line wire-relay glow-wire transition-all duration-300" />
+
+        <!-- WIRE 7: DHT22 Data - GPIO 4 (Orange Wire) -->
+        <path id="w-dht" d="M 280 170 C 220 170, 180 140, 130 140" stroke="#fb923c" stroke-width="3" class="wire-line wire-sensor glow-wire transition-all duration-300" />
+
+        <!-- WIRE 8: PIR Motion Out - GPIO 23 (Pink Wire) -->
+        <path id="w-pir" d="M 280 295 C 220 295, 180 320, 130 320" stroke="#f472b6" stroke-width="3" class="wire-line wire-sensor glow-wire transition-all duration-300" />
+
+        <!-- Central Board: ESP32 NodeMCU Representation -->
+        <g transform="translate(270, 90)">
+          <!-- Board PCB Base -->
+          <rect width="130" height="230" rx="12" fill="#0f172a" stroke="#38bdf8" stroke-width="2" class="shadow-xl" />
+          <!-- ESP32 Metal Chip -->
+          <rect x="25" y="40" width="80" height="90" rx="6" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+          <text x="65" y="85" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">ESP32-WROOM</text>
+          <text x="65" y="100" fill="#38bdf8" font-size="9" text-anchor="middle">WiFi + Bluetooth</text>
+          <!-- USB Port -->
+          <rect x="45" y="215" width="40" height="15" fill="#475569" rx="2" />
+          <text x="65" y="226" fill="#f8fafc" font-size="8" text-anchor="middle">USB Micro</text>
+          
+          <!-- Board Title -->
+          <text x="65" y="25" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">ESP32 NodeMCU</text>
+
+          <!-- Pin Labels Left Side -->
+          <circle cx="10" cy="80" r="4" fill="#fb923c" />
+          <text x="20" y="83" fill="#fb923c" font-size="10" font-weight="bold">GPIO 4 (DHT)</text>
+
+          <circle cx="10" cy="205" r="4" fill="#f472b6" />
+          <text x="20" y="208" fill="#f472b6" font-size="10" font-weight="bold">GPIO 23 (PIR)</text>
+
+          <!-- Pin Labels Right Side -->
+          <circle cx="120" cy="30" r="4" fill="#ef4444" />
+          <text x="110" y="33" fill="#ef4444" font-size="10" font-weight="bold" text-anchor="end">VIN (5V)</text>
+
+          <circle cx="120" cy="50" r="4" fill="#64748b" />
+          <text x="110" y="53" fill="#cbd5e1" font-size="10" font-weight="bold" text-anchor="end">GND</text>
+
+          <circle cx="120" cy="105" r="4" fill="#facc15" />
+          <text x="110" y="108" fill="#facc15" font-size="10" font-weight="bold" text-anchor="end">GPIO 18</text>
+
+          <circle cx="120" cy="130" r="4" fill="#4ade80" />
+          <text x="110" y="133" fill="#4ade80" font-size="10" font-weight="bold" text-anchor="end">GPIO 19</text>
+
+          <circle cx="120" cy="155" r="4" fill="#38bdf8" />
+          <text x="110" y="158" fill="#38bdf8" font-size="10" font-weight="bold" text-anchor="end">GPIO 21</text>
+
+          <circle cx="120" cy="180" r="4" fill="#c084fc" />
+          <text x="110" y="183" fill="#c084fc" font-size="10" font-weight="bold" text-anchor="end">GPIO 22</text>
+        </g>
+
+        <!-- Right Side: 4-Channel Relay Module -->
+        <g transform="translate(610, 70)">
+          <rect width="150" height="240" rx="10" fill="#0284c7" stroke="#38bdf8" stroke-width="2" />
+          <text x="75" y="25" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Relay 4-Channel</text>
+          <text x="75" y="40" fill="#bae6fd" font-size="9" text-anchor="middle">สวิตช์รีเลย์เปิด-ปิดไฟ</text>
+
+          <!-- 4 Black Relay Blocks -->
+          <rect x="15" y="55" width="120" height="35" rx="4" fill="#0f172a" stroke="#38bdf8" />
+          <text x="75" y="77" fill="#facc15" font-size="10" font-weight="bold" text-anchor="middle">Relay 1: ไฟห้องนั่งเล่น</text>
+
+          <rect x="15" y="98" width="120" height="35" rx="4" fill="#0f172a" stroke="#4ade80" />
+          <text x="75" y="120" fill="#4ade80" font-size="10" font-weight="bold" text-anchor="middle">Relay 2: ไฟห้องนอน</text>
+
+          <rect x="15" y="141" width="120" height="35" rx="4" fill="#0f172a" stroke="#38bdf8" />
+          <text x="75" y="163" fill="#38bdf8" font-size="10" font-weight="bold" text-anchor="middle">Relay 3: พัดลม</text>
+
+          <rect x="15" y="184" width="120" height="35" rx="4" fill="#0f172a" stroke="#c084fc" />
+          <text x="75" y="206" fill="#c084fc" font-size="10" font-weight="bold" text-anchor="middle">Relay 4: สวิตช์ม่าน</text>
+        </g>
+
+        <!-- Left Top Component: DHT22 Temp Sensor -->
+        <g transform="translate(30, 80)">
+          <rect width="110" height="110" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+          <!-- Grid Sensor Vent -->
+          <rect x="25" y="20" width="60" height="45" rx="4" fill="#e2e8f0" stroke="#94a3b8" />
+          <text x="55" y="47" fill="#0284c7" font-size="11" font-weight="bold" text-anchor="middle">DHT22</text>
+          <text x="55" y="85" fill="#334155" font-size="10" font-weight="bold" text-anchor="middle">เซนเซอร์วัดอุณหภูมิ</text>
+        </g>
+
+        <!-- Left Bottom Component: PIR Motion Sensor -->
+        <g transform="translate(30, 260)">
+          <rect width="110" height="110" rx="10" fill="#166534" stroke="#4ade80" stroke-width="2" />
+          <!-- White Dome Sensor Cover -->
+          <circle cx="55" cy="45" r="24" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+          <text x="55" y="50" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle">PIR Dome</text>
+          <text x="55" y="90" fill="#f8fafc" font-size="10" font-weight="bold" text-anchor="middle">จับความเคลื่อนไหว</text>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- Wiring Legend & Quick Pin Table -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+      
+      <!-- Table 1: Relay Connections -->
+      <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
+        <h4 class="font-bold text-amber-400 mb-2.5 flex items-center gap-1.5">
+          <span>⚡</span> การต่อสายไฟโมดูลรีเลย์ 4 ช่อง (Relay Module)
+        </h4>
+        <ul class="space-y-1.5">
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-red-400">VCC (5V)</b> ของรีเลย์</span>
+            <span class="text-red-400 font-mono">➡️ เสียบเข้า VIN (ESP32)</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-slate-400">GND</b> ของรีเลย์</span>
+            <span class="text-slate-400 font-mono">➡️ เสียบเข้า GND (ESP32)</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-yellow-400">IN1</b> (ไฟห้องนั่งเล่น)</span>
+            <span class="text-yellow-400 font-mono">➡️ เสียบเข้า GPIO 18</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-emerald-400">IN2</b> (ไฟห้องนอน)</span>
+            <span class="text-emerald-400 font-mono">➡️ เสียบเข้า GPIO 19</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-sky-400">IN3</b> (พัดลม)</span>
+            <span class="text-sky-400 font-mono">➡️ เสียบเข้า GPIO 21</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-purple-400">IN4</b> (สวิตช์ม่าน)</span>
+            <span class="text-purple-400 font-mono">➡️ เสียบเข้า GPIO 22</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Table 2: Sensors Connections -->
+      <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
+        <h4 class="font-bold text-emerald-400 mb-2.5 flex items-center gap-1.5">
+          <span>🌡️</span> การต่อสายเซนเซอร์วัดอุณหภูมิ & ตรวจจับการเคลื่อนไหว
+        </h4>
+        <ul class="space-y-1.5">
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-orange-400">DAT</b> ของ DHT22 (อุณหภูมิ)</span>
+            <span class="text-orange-400 font-mono">➡️ เสียบเข้า GPIO 4</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-red-400">VCC</b> ของ DHT22</span>
+            <span class="text-red-400 font-mono">➡️ เสียบเข้า 3V3 (ESP32)</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-pink-400">OUT</b> ของ PIR Motion (จับคน)</span>
+            <span class="text-pink-400 font-mono">➡️ เสียบเข้า GPIO 23</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-red-400">VCC</b> ของ PIR Motion</span>
+            <span class="text-red-400 font-mono">➡️ เสียบเข้า VIN (ESP32)</span>
+          </li>
+          <li class="flex items-center justify-between p-1.5 rounded bg-black/30">
+            <span class="text-slate-300">รู <b class="text-slate-400">GND</b> ของเซนเซอร์ทุกตัว</span>
+            <span class="text-slate-400 font-mono">➡️ เสียบรวมเข้า GND</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Tips Note -->
+    <div class="mt-4 p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/30 text-xs text-cyan-200 flex items-center gap-2">
+      <span class="text-base">💡</span>
+      <span><b>ข้อแนะนำผู้เริ่มต้น:</b> ใช้สายไฟเสียบ Jumper Wires แบบ (เมีย-เมีย / Female to Female) เสียบเข้าที่ขารูเข็มได้ตรงๆ โดยไม่ต้องใช้หัวบัดกรีเลยครับ!</span>
+    </div>
+
+  </div>
+
+  <script>
+    function highlightWire(group) {
+      const wires = document.querySelectorAll('.wire-line');
+      wires.forEach(w => {
+        if (group === 'all') {
+          w.style.opacity = '1';
+          w.style.strokeWidth = w.classList.contains('wire-power') ? '3.5' : '3';
+        } else if (group === 'relay') {
+          if (w.classList.contains('wire-relay') || w.classList.contains('wire-power')) {
+            w.style.opacity = '1';
+            w.style.strokeWidth = '4';
+          } else {
+            w.style.opacity = '0.15';
+          }
+        } else if (group === 'sensors') {
+          if (w.classList.contains('wire-sensor') || w.classList.contains('wire-power')) {
+            w.style.opacity = '1';
+            w.style.strokeWidth = '4';
+          } else {
+            w.style.opacity = '0.15';
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
