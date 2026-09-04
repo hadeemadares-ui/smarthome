@@ -638,6 +638,46 @@ const CMD_TEXT = {
   IR_TEMP_UP:'❄️ แอร์ +1°C', IR_TEMP_DN:'❄️ แอร์ -1°C'
 };
 
+// Convert Hex Code to Microseconds NEC Pattern for Android ConsumerIrManager.transmit()
+function hexToNECPattern(hexStr) {
+  let val = parseInt(hexStr.replace('0x', ''), 16);
+  if (isNaN(val)) val = 0x20DF10EF;
+  
+  const pattern = [9000, 4500]; // Standard NEC Header Mark & Space
+  for (let i = 31; i >= 0; i--) {
+    const bit = (val >> i) & 1;
+    pattern.push(560);
+    pattern.push(bit ? 1690 : 560);
+  }
+  pattern.push(560); // NEC Stop bit
+  return pattern;
+}
+
+// Universal Hardware IR Transmit for Honor 200, Xiaomi, Poco, Huawei, Samsung Built-in Phone IR Blasters
+function transmitBuiltInPhoneIR(hexCode = '0x20DF10EF', freq = 38000) {
+  const pattern = hexToNECPattern(hexCode);
+  const bridges = [
+    window.AndroidIR,
+    window.ConsumerIR,
+    window.HonorIR,
+    window.XiaomiIR,
+    window.HuaweiIR,
+    navigator.ir
+  ];
+
+  for (const bridge of bridges) {
+    if (bridge && typeof bridge.transmit === 'function') {
+      try {
+        bridge.transmit(freq, pattern);
+        return true;
+      } catch (e) {
+        try { bridge.transmit(freq, hexCode); return true; } catch (err) {}
+      }
+    }
+  }
+  return false;
+}
+
 // Web Audio 38kHz Carrier Signal Modulator for 3.5mm IR Audio Blaster & Built-in IR Emulation
 function transmitWebAudioIR(hexCode = '0x20DF10EF') {
   try {
@@ -735,6 +775,9 @@ function vRemote() {
       </div>
       <div style="text-align: center; margin-bottom: 14px;">
         <div style="font-size: 1rem; font-weight: 700; color: #fff;">📡 รีโมทอินฟราเรด (Infrared IR)</div>
+        <div style="font-size: 0.78rem; color: #38bdf8; margin-top: 4px; font-weight: 600;">
+          📲 รองรับตัวยิง IR บนหัวเครื่อง (Honor 200 / Xiaomi / Poco / Huawei) + ESP32 MQTT
+        </div>
       </div>
 
       <!-- Compact IR Type Pill Tabs -->
@@ -992,14 +1035,10 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
     setTimeout(() => emitter.classList.remove('transmitting'), 400);
   }
 
-  // 3. Native Android Built-in Hardware IR Blaster Support (Honor 200 / Xiaomi / Huawei / Poco)
-  if (window.AndroidIR && typeof window.AndroidIR.transmit === 'function') {
-    try {
-      window.AndroidIR.transmit(38000, hexCode);
-    } catch (e) {}
-  }
+  // 3. Built-in Phone Hardware IR Blaster (Honor 200 / Xiaomi / Poco / Huawei / Samsung)
+  const isPhoneIrFired = transmitBuiltInPhoneIR(hexCode, 38000);
 
-  // 4. Web Audio 38kHz Carrier Generator
+  // 4. Web Audio 38kHz Carrier Signal Modulator
   transmitWebAudioIR(hexCode);
 
   // 5. MQTT IR Transmit Payload for ESP32 / Arduino IR Blasters in the house
