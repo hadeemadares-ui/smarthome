@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>Commercial Sales Proposal Pitch Deck - Smart Home Automation</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Prompt', sans-serif; background-color: #0f172a; color: #f8fafc; }
+    .glass-card {
+      background: rgba(18, 24, 38, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="antialiased p-4 min-h-screen flex items-center justify-center">
+  <div class="glass-card rounded-2xl p-6 shadow-2xl border border-white/10 max-w-2xl w-full">
+    
+    <!-- Title Header -->
+    <div class="flex items-center justify-between pb-4 border-b border-white/10">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-1">
+          ✨ Commercial Sales Proposal Pitch Deck
+        </div>
+        <h2 class="text-xl font-bold gradient-text">Obsidian Smart Home Automation v2.0</h2>
+        <p class="text-xs text-slate-400">ระบบควบคุมบ้านอัจฉริยะแบบครบวงจรสำหรับนำไปทำขายและติดตั้งจริง</p>
+      </div>
+      <div class="text-right">
+        <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          🟢 Ready to Sell
+        </span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex gap-1.5 my-4 p-1 bg-black/40 rounded-xl text-xs font-semibold">
+      <button onclick="switchTab('highlights')" id="tab-highlights" class="tab-btn flex-1 py-2 rounded-lg bg-indigo-600 text-white shadow-md transition-all">
+        🌟 จุดเด่นเสนอขาย
+      </button>
+      <button onclick="switchTab('calculator')" id="tab-calculator" class="tab-btn flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+        💰 คำนวณราคา & กำไร
+      </button>
+      <button onclick="switchTab('hardware')" id="tab-hardware" class="tab-btn flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+        📦 อุปกรณ์ฮาร์ดแวร์
+      </button>
+      <button onclick="switchTab('install')" id="tab-install" class="tab-btn flex-1 py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+        🛠️ ขั้นตอนการติดตั้ง
+      </button>
+    </div>
+
+    <!-- TAB 1: HIGHLIGHTS -->
+    <div id="sec-highlights" class="tab-content space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-500/40 transition-all">
+          <div class="text-xl mb-1">📱</div>
+          <h4 class="font-semibold text-sm text-white">Apple Obsidian Glass Design</h4>
+          <p class="text-xs text-slate-400 mt-1">ดีไซน์กระจกใสตัดขอบเรืองแสงสุดหรูหรา เพิ่มมูลค่าให้บ้าน คอนโด หรือรีสอร์ท</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-500/40 transition-all">
+          <div class="text-xl mb-1">⚡</div>
+          <h4 class="font-semibold text-sm text-white">ความเร็วระดับ 60 FPS</h4>
+          <p class="text-xs text-slate-400 mt-1">อัปเดตสถานะปุ่มและเซนเซอร์เฉพาะจุดแบบ In-Place DOM สัมผัสลื่นไหล ไร้รอยต่อ</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-500/40 transition-all">
+          <div class="text-xl mb-1">📡</div>
+          <h4 class="font-semibold text-sm text-white">2-Way MQTT Sync & IR Blaster</h4>
+          <p class="text-xs text-slate-400 mt-1">ซิงค์สัญญาณสวิตช์ไฟจริง 2 ทางเรียลไทม์ และคุมแอร์/ทีวี 50+ ยี่ห้อทั่วโลก</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-500/40 transition-all">
+          <div class="text-xl mb-1">📹</div>
+          <h4 class="font-semibold text-sm text-white">กล้องสด & AI Motion Box</h4>
+          <p class="text-xs text-slate-400 mt-1">สตรีมมิ่งกล้องสด ตีกรอบสีแดงตีกรอบความเคลื่อนไหวเรียลไทม์ พร้อม Night Vision</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: INTERACTIVE PRICING CALCULATOR -->
+    <div id="sec-calculator" class="tab-content hidden space-y-3">
+      <div class="p-4 rounded-xl bg-indigo-950/40 border border-indigo-500/30">
+        <h4 class="font-bold text-sm text-indigo-300 mb-3">🧮 เครื่องมือคำนวณราคาเสนอขายและกำไรขั้นต้น (Margin Estimator)</h4>
+        
+        <div class="space-y-3 text-xs">
+          <div>
+            <div class="flex justify-between font-semibold mb-1">
+              <span>จำนวนห้องที่ติดตั้ง:</span>
+              <span id="txtRooms" class="text-indigo-400 font-bold">1 ห้อง (คอนโด)</span>
+            </div>
+            <input type="range" id="inputRooms" min="1" max="10" value="1" oninput="calcPrice()" class="w-full accent-indigo-500 bg-slate-800 rounded-lg">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-black/20 border border-white/5 cursor-pointer">
+              <input type="checkbox" id="chkIr" checked onchange="calcPrice()" class="rounded accent-indigo-500">
+              <span>กล่องรีโมท IR Blaster (แอร์/ทีวี)</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-black/20 border border-white/5 cursor-pointer">
+              <input type="checkbox" id="chkCam" checked onchange="calcPrice()" class="rounded accent-indigo-500">
+              <span>กล้องวงจรปิด AI Motion (+1,500฿)</span>
+            </label>
+          </div>
+
+          <!-- Price Summary Output -->
+          <div class="grid grid-cols-3 gap-2 pt-3 text-center border-t border-indigo-500/20">
+            <div class="p-2.5 rounded-lg bg-black/40">
+              <div class="text-[10px] text-slate-400">ราคาเสนอขายลูกค้า</div>
+              <div id="valSell" class="text-base font-bold text-emerald-400">฿12,900</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-black/40">
+              <div class="text-[10px] text-slate-400">ต้นทุนฮาร์ดแวร์โดยประมาณ</div>
+              <div id="valCost" class="text-base font-bold text-amber-400">฿2,200</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-indigo-600/30 border border-indigo-500/40">
+              <div class="text-[10px] text-indigo-300 font-semibold">กำไรขั้นต้น (Profit)</div>
+              <div id="valProfit" class="text-base font-bold text-indigo-300">฿10,700</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: HARDWARE CHECKLIST -->
+    <div id="sec-hardware" class="tab-content hidden space-y-2">
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10 text-xs flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold">01</span>
+          <div>
+            <div class="font-semibold text-white">บอร์ดประมวลผลหลัก ESP32 NodeMCU</div>
+            <div class="text-[10px] text-slate-400">WiFi + Bluetooth BLE Dual Core 240MHz</div>
+          </div>
+        </div>
+        <span class="font-mono text-emerald-400 font-semibold">~150฿</span>
+      </div>
+
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10 text-xs flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold">02</span>
+          <div>
+            <div class="font-semibold text-white">Relay Module 4-Channel Optocoupler</div>
+            <div class="text-[10px] text-slate-400">สวิตช์รีเลย์ควบคุมไฟบ้าน AC 220V 10A</div>
+          </div>
+        </div>
+        <span class="font-mono text-emerald-400 font-semibold">~120฿</span>
+      </div>
+
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10 text-xs flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold">03</span>
+          <div>
+            <div class="font-semibold text-white">DHT22 Temp & Humidity Sensor</div>
+            <div class="text-[10px] text-slate-400">เซนเซอร์วัดอุณหภูมิและความชื้นแม่นยำสูง</div>
+          </div>
+        </div>
+        <span class="font-mono text-emerald-400 font-semibold">~110฿</span>
+      </div>
+
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10 text-xs flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold">04</span>
+          <div>
+            <div class="font-semibold text-white">PIR Motion Sensor HC-SR501</div>
+            <div class="text-[10px] text-slate-400">เซนเซอร์ตรวจจับความเคลื่อนไหวคน/สัตว์</div>
+          </div>
+        </div>
+        <span class="font-mono text-emerald-400 font-semibold">~45฿</span>
+      </div>
+    </div>
+
+    <!-- TAB 4: INSTALLATION STEPS -->
+    <div id="sec-install" class="tab-content hidden space-y-2 text-xs">
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+        <div class="font-semibold text-indigo-300 mb-1">ขั้นตอนที่ 1: ต่อสายฮาร์ดแวร์ (Hardware Wiring)</div>
+        <p class="text-slate-400 text-[11px]">ต่อขา GPIO 18, 19 ของ ESP32 เข้าช่อง Relay 1 & 2 และต่อขา GPIO 4 เข้ากับ DHT22 Sensor</p>
+      </div>
+
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+        <div class="font-semibold text-indigo-300 mb-1">ขั้นตอนที่ 2: แฟลชโค้ดบอร์ด ESP32 (Firmware Flash)</div>
+        <p class="text-slate-400 text-[11px]">เปิด Arduino IDE อัปโหลดไฟล์ <code>esp32_gateway.ino</code> โดยใส่ชื่อ WiFi และรหัสบ้านของลูกค้า</p>
+      </div>
+
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+        <div class="font-semibold text-indigo-300 mb-1">ขั้นตอนที่ 3: ขึ้นเว็บแอปบน Cloud / GitHub Pages</div>
+        <p class="text-slate-400 text-[11px]">อัปโหลดไฟล์ HTML/JS/CSS ขึ้น Server เพื่อรับลิงก์ URL ประจำบ้านลูกค้า</p>
+      </div>
+
+      <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
+        <div class="font-semibold text-emerald-300 mb-1">ขั้นตอนที่ 4: เพิ่มลงหน้าจอมือถือลูกค้า (Add to Home Screen)</div>
+        <p class="text-slate-300 text-[11px]">กดแชร์บน Safari (iPhone) หรือ Chrome (Android) เลือก "Add to Home Screen" เพื่อใช้งานทันที</p>
+      </div>
+    </div>
+
+    <!-- Footer Action -->
+    <div class="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+      <span class="text-slate-400">💡 พร้อมสาธิตและส่งมอบงานให้ลูกค้า</span>
+      <a href="https://hadeemadares-ui.github.io/smarthome/" target="_blank" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-sky-500 text-white font-bold shadow-lg hover:brightness-110 transition-all flex items-center gap-1.5">
+        🚀 เปิดหน้าแอปสาธิตขายจริง
+      </a>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md');
+        btn.classList.add('text-slate-400');
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+      const activeBtn = document.getElementById('tab-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md');
+        activeBtn.classList.remove('text-slate-400');
+      }
+      const activeSec = document.getElementById('sec-' + tabId);
+      if (activeSec) activeSec.classList.remove('hidden');
+    }
+
+    function calcPrice() {
+      const rooms = parseInt(document.getElementById('inputRooms').value);
+      const chkIr = document.getElementById('chkIr').checked;
+      const chkCam = document.getElementById('chkCam').checked;
+
+      document.getElementById('txtRooms').textContent = rooms + (rooms === 1 ? ' ห้อง (คอนโด)' : ' ห้อง (บ้านทั้งหลัง)');
+
+      let sellPrice = 9900 + (rooms - 1) * 4000;
+      if (chkIr) sellPrice += 1500 * rooms;
+      if (chkCam) sellPrice += 1500;
+
+      let cost = 1200 + (rooms - 1) * 800;
+      if (chkIr) cost += 300 * rooms;
+      if (chkCam) cost += 700;
+
+      let profit = sellPrice - cost;
+
+      document.getElementById('valSell').textContent = '฿' + sellPrice.toLocaleString();
+      document.getElementById('valCost').textContent = '฿' + cost.toLocaleString();
+      document.getElementById('valProfit').textContent = '฿' + profit.toLocaleString();
+    }
+  </script>
+</body>
+</html>
