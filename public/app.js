@@ -992,10 +992,17 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
     setTimeout(() => emitter.classList.remove('transmitting'), 400);
   }
 
-  // 3. Web Audio 38kHz Carrier Generator
+  // 3. Native Android Built-in Hardware IR Blaster Support (Honor 200 / Xiaomi / Huawei / Poco)
+  if (window.AndroidIR && typeof window.AndroidIR.transmit === 'function') {
+    try {
+      window.AndroidIR.transmit(38000, hexCode);
+    } catch (e) {}
+  }
+
+  // 4. Web Audio 38kHz Carrier Generator
   transmitWebAudioIR(hexCode);
 
-  // 4. MQTT IR Transmit Payload for ESP32 / Arduino IR Blasters in the house
+  // 5. MQTT IR Transmit Payload for ESP32 / Arduino IR Blasters in the house
   if (mqttClient && mqttClient.connected) {
     const irPayload = {
       type: 'IR_TRANSMIT',
