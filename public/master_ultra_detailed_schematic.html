@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>Master Ultra-Detailed Electrical & Smart Farm Schematic</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Prompt', sans-serif; background-color: #050b14; color: #f8fafc; }
+    .glass-card {
+      background: rgba(13, 20, 36, 0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .glow-wire { filter: drop-shadow(0 0 8px currentColor); }
+  </style>
+</head>
+<body class="antialiased p-3 sm:p-5 min-h-screen flex items-center justify-center">
+  <div class="glass-card rounded-2xl p-4 sm:p-6 shadow-2xl border border-white/10 max-w-6xl w-full">
+    
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-1">
+          📐 Master Electrical Engineering Wiring Diagram (Ultra-Detailed)
+        </div>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-white">แผนผังวงจรไฟฟ้าและฮาร์ดแวร์ฉบับละเอียดสูงสุด</h2>
+        <p class="text-xs text-slate-400">แสดงการต่อขั้วขารูเข็ม สายไฟ AC 220V เบรกเกอร์ ขั้ว COM/NO ของรีเลย์ แมกเนติกคอนแทคเตอร์ และวาล์วเกษตร</p>
+      </div>
+
+      <!-- Section Navigation Tabs -->
+      <div class="flex flex-wrap p-1 bg-black/50 rounded-xl text-xs font-semibold border border-white/10">
+        <button onclick="switchTab('sensors')" id="tab-sensors" class="tab-btn px-3.5 py-2 rounded-lg bg-indigo-600 text-white shadow transition-all">
+          🔌 ESP32 & เซนเซอร์
+        </button>
+        <button onclick="switchTab('home')" id="tab-home" class="tab-btn px-3.5 py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+          🏠 ไฟบ้าน AC 220V & เครื่องใช้ไฟฟ้า
+        </button>
+        <button onclick="switchTab('farm')" id="tab-farm" class="tab-btn px-3.5 py-2 rounded-lg text-slate-400 hover:text-white transition-all">
+          🌾 ปั๊มน้ำเกษตร & แมกเนติกฟาร์ม
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: ESP32 & SENSORS DETAILED DIAGRAM -->
+    <div id="sec-sensors" class="tab-content my-4">
+      <div class="relative bg-slate-950 rounded-xl p-3 border border-white/10 overflow-hidden">
+        <svg class="w-full h-[420px]" viewBox="0 0 950 420" fill="none" stroke="currentColor">
+          <defs>
+            <pattern id="grid1" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="950" height="420" fill="url(#grid1)" />
+
+          <!-- ESP32 MAIN BOARD -->
+          <g transform="translate(370, 60)">
+            <rect width="210" height="300" rx="14" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5"/>
+            <text x="105" y="28" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">ESP32 NodeMCU (30-Pin)</text>
+            <rect x="45" y="45" width="120" height="120" rx="8" fill="#1e293b" stroke="#64748b"/>
+            <text x="105" y="105" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">ESP-WROOM-32</text>
+            <text x="105" y="122" fill="#94a3b8" font-size="9" text-anchor="middle">240MHz Dual-Core</text>
+
+            <!-- USB Port -->
+            <rect x="75" y="280" width="60" height="20" fill="#475569" rx="3" />
+            <text x="105" y="294" fill="#ffffff" font-size="9" text-anchor="middle">Micro USB 5V</text>
+
+            <!-- Left Pins -->
+            <circle cx="15" cy="80" r="5" fill="#ef4444"/><text x="28" y="84" fill="#ef4444" font-size="10" font-weight="bold">3V3 (Power Out)</text>
+            <circle cx="15" cy="110" r="5" fill="#64748b"/><text x="28" y="114" fill="#cbd5e1" font-size="10" font-weight="bold">GND (Ground)</text>
+            <circle cx="15" cy="150" r="5" fill="#fb923c"/><text x="28" y="154" fill="#fb923c" font-size="10" font-weight="bold">GPIO 4 (D4)</text>
+            <circle cx="15" cy="240" r="5" fill="#f472b6"/><text x="28" y="244" fill="#f472b6" font-size="10" font-weight="bold">GPIO 23 (D23)</text>
+
+            <!-- Right Pins -->
+            <circle cx="195" cy="80" r="5" fill="#ef4444"/><text x="182" y="84" fill="#ef4444" font-size="10" font-weight="bold" text-anchor="end">VIN (5V In/Out)</text>
+            <circle cx="195" cy="110" r="5" fill="#64748b"/><text x="182" y="114" fill="#cbd5e1" font-size="10" font-weight="bold" text-anchor="end">GND (Ground)</text>
+            <circle cx="195" cy="150" r="5" fill="#facc15"/><text x="182" y="154" fill="#facc15" font-size="10" font-weight="bold" text-anchor="end">GPIO 18 (D18)</text>
+            <circle cx="195" cy="180" r="5" fill="#4ade80"/><text x="182" y="184" fill="#4ade80" font-size="10" font-weight="bold" text-anchor="end">GPIO 19 (D19)</text>
+            <circle cx="195" cy="210" r="5" fill="#38bdf8"/><text x="182" y="214" fill="#38bdf8" font-size="10" font-weight="bold" text-anchor="end">GPIO 21 (D21)</text>
+            <circle cx="195" cy="240" r="5" fill="#c084fc"/><text x="182" y="244" fill="#c084fc" font-size="10" font-weight="bold" text-anchor="end">GPIO 22 (D22)</text>
+          </g>
+
+          <!-- DHT22 TEMP SENSOR (LEFT TOP) -->
+          <g transform="translate(40, 50)">
+            <rect width="180" height="130" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+            <rect x="20" y="20" width="70" height="50" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="55" y="50" fill="#0284c7" font-size="11" font-weight="bold" text-anchor="middle">DHT22</text>
+            <text x="105" y="35" fill="#ffffff" font-size="11" font-weight="bold">เซนเซอร์อุณหภูมิ</text>
+            <text x="105" y="52" fill="#94a3b8" font-size="9">&amp; ความชื้นสัมพัทธ์</text>
+
+            <circle cx="30" cy="105" r="4" fill="#ef4444"/><text x="40" y="108" fill="#fca5a5" font-size="9">1. VCC (+)</text>
+            <circle cx="90" cy="105" r="4" fill="#fb923c"/><text x="100" y="108" fill="#fdba74" font-size="9">2. DAT (Data)</text>
+            <circle cx="150" cy="105" r="4" fill="#64748b"/><text x="160" y="108" fill="#cbd5e1" font-size="9">3. GND (-)</text>
+          </g>
+
+          <!-- PIR MOTION SENSOR (LEFT BOTTOM) -->
+          <g transform="translate(40, 240)">
+            <rect width="180" height="130" rx="10" fill="#14532d" stroke="#4ade80" stroke-width="2"/>
+            <circle cx="50" cy="45" r="25" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+            <text x="50" y="50" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle">PIR Dome</text>
+            <text x="95" y="35" fill="#ffffff" font-size="11" font-weight="bold">เซนเซอร์ PIR</text>
+            <text x="95" y="52" fill="#86efac" font-size="9">ตรวจจับคนเดินผ่าน</text>
+
+            <circle cx="30" cy="105" r="4" fill="#ef4444"/><text x="40" y="108" fill="#fca5a5" font-size="9">VCC (5V)</text>
+            <circle cx="90" cy="105" r="4" fill="#f472b6"/><text x="100" y="108" fill="#fbcfe8" font-size="9">OUT (Signal)</text>
+            <circle cx="150" cy="105" r="4" fill="#64748b"/><text x="160" y="108" fill="#cbd5e1" font-size="9">GND</text>
+          </g>
+
+          <!-- RELAY MODULE BLOCK (RIGHT) -->
+          <g transform="translate(720, 60)">
+            <rect width="190" height="300" rx="12" fill="#0369a1" stroke="#38bdf8" stroke-width="2"/>
+            <text x="95" y="30" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Relay 4-CH (Logic Side)</text>
+            <text x="95" y="45" fill="#bae6fd" font-size="9" text-anchor="middle">ขาสัญญาณสั่งงานจาก ESP32</text>
+
+            <circle cx="30" cy="80" r="5" fill="#ef4444"/><text x="45" y="84" fill="#ffffff" font-size="10" font-weight="bold">VCC (5V)</text>
+            <circle cx="30" cy="110" r="5" fill="#64748b"/><text x="45" y="114" fill="#cbd5e1" font-size="10" font-weight="bold">GND (Ground)</text>
+            <circle cx="30" cy="150" r="5" fill="#facc15"/><text x="45" y="154" fill="#facc15" font-size="10" font-weight="bold">IN1 (GPIO 18)</text>
+            <circle cx="30" cy="180" r="5" fill="#4ade80"/><text x="45" y="184" fill="#4ade80" font-size="10" font-weight="bold">IN2 (GPIO 19)</text>
+            <circle cx="30" cy="210" r="5" fill="#38bdf8"/><text x="45" y="214" fill="#38bdf8" font-size="10" font-weight="bold">IN3 (GPIO 21)</text>
+            <circle cx="30" cy="240" r="5" fill="#c084fc"/><text x="45" y="244" fill="#c084fc" font-size="10" font-weight="bold">IN4 (GPIO 22)</text>
+          </g>
+
+          <!-- SVG WIRES -->
+          <!-- DHT22 Wires -->
+          <path d="M 70 155 C 70 210, 300 140, 370 140" stroke="#ef4444" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 130 155 C 130 220, 300 210, 370 210" stroke="#fb923c" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 190 155 C 190 230, 300 170, 370 170" stroke="#64748b" stroke-width="2.5" class="glow-wire"/>
+
+          <!-- PIR Wires -->
+          <path d="M 70 345 C 70 390, 320 390, 565 140" stroke="#ef4444" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 130 345 C 130 380, 320 300, 370 300" stroke="#f472b6" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 190 345 C 190 370, 320 230, 370 170" stroke="#64748b" stroke-width="2.5" class="glow-wire"/>
+
+          <!-- Relay Logic Wires -->
+          <path d="M 565 140 C 620 140, 680 140, 750 140" stroke="#ef4444" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 565 170 C 620 170, 680 170, 750 170" stroke="#64748b" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 565 210 L 750 210" stroke="#facc15" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 565 240 L 750 240" stroke="#4ade80" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 565 270 L 750 270" stroke="#38bdf8" stroke-width="2.5" class="glow-wire"/>
+          <path d="M 565 300 L 750 300" stroke="#c084fc" stroke-width="2.5" class="glow-wire"/>
+
+        </svg>
+      </div>
+    </div>
+
+    <!-- TAB 2: HOME AC 220V APPLIANCES WIRING DIAGRAM -->
+    <div id="sec-home" class="tab-content my-4 hidden">
+      <div class="relative bg-slate-950 rounded-xl p-3 border border-white/10 overflow-hidden">
+        <svg class="w-full h-[450px]" viewBox="0 0 950 450" fill="none" stroke="currentColor">
+          <rect width="950" height="450" fill="url(#grid1)" />
+
+          <!-- MAIN MAIN BREAKER AC 220V -->
+          <g transform="translate(30, 40)">
+            <rect width="140" height="110" rx="8" fill="#991b1b" stroke="#ef4444" stroke-width="2"/>
+            <text x="70" y="25" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Main Breaker 220V</text>
+            <text x="70" y="42" fill="#fca5a5" font-size="9" text-anchor="middle">เบรกเกอร์ตัดตอนไฟบ้าน</text>
+            
+            <rect x="25" y="55" width="40" height="40" rx="4" fill="#0f172a"/>
+            <text x="45" y="78" fill="#ef4444" font-size="10" font-weight="bold" text-anchor="middle">L (Live)</text>
+            
+            <rect x="75" y="55" width="40" height="40" rx="4" fill="#0f172a"/>
+            <text x="95" y="78" fill="#38bdf8" font-size="10" font-weight="bold" text-anchor="middle">N (Neu)</text>
+          </g>
+
+          <!-- NEUTRAL BUS BAR (BLUE RAIL BOTTOM) -->
+          <g transform="translate(30, 390)">
+            <rect width="890" height="35" rx="6" fill="#0c4a6e" stroke="#38bdf8" stroke-width="2"/>
+            <text x="445" y="22" fill="#bae6fd" font-size="11" font-weight="bold" text-anchor="middle">รางต่อสาย Neutral (N) กราวด์รวมไฟบ้าน 220V</text>
+          </g>
+
+          <!-- RELAY HIGH VOLTAGE TERMINALS (MIDDLE) -->
+          <g transform="translate(240, 40)">
+            <rect width="220" height="320" rx="12" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
+            <text x="110" y="25" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Relay 4-CH (AC 220V Side)</text>
+            <text x="110" y="40" fill="#bae6fd" font-size="9" text-anchor="middle">ขั้วต่อสวิตช์หน้าสัมผัสตัดต่อไฟบ้าน</text>
+
+            <!-- CH 1 Terminals -->
+            <rect x="15" y="50" width="190" height="55" rx="6" fill="#0f172a" stroke="#facc15"/>
+            <text x="25" y="70" fill="#facc15" font-size="10" font-weight="bold">CH1:</text>
+            <text x="70" y="70" fill="#ef4444" font-size="9">COM1 (เข้า L)</text>
+            <text x="140" y="70" fill="#facc15" font-size="9">NO1 (ออกไฟ)</text>
+
+            <!-- CH 2 Terminals -->
+            <rect x="15" y="115" width="190" height="55" rx="6" fill="#0f172a" stroke="#4ade80"/>
+            <text x="25" y="135" fill="#4ade80" font-size="10" font-weight="bold">CH2:</text>
+            <text x="70" y="135" fill="#ef4444" font-size="9">COM2 (เข้า L)</text>
+            <text x="140" y="135" fill="#4ade80" font-size="9">NO2 (ออกพัดลม)</text>
+
+            <!-- CH 3 Terminals -->
+            <rect x="15" y="180" width="190" height="55" rx="6" fill="#0f172a" stroke="#38bdf8"/>
+            <text x="25" y="200" fill="#38bdf8" font-size="10" font-weight="bold">CH3:</text>
+            <text x="70" y="200" fill="#ef4444" font-size="9">COM3 (เข้า L)</text>
+            <text x="140" y="200" fill="#38bdf8" font-size="9">NO3 (ออกม่าน)</text>
+
+            <!-- CH 4 Terminals -->
+            <rect x="15" y="245" width="190" height="55" rx="6" fill="#0f172a" stroke="#c084fc"/>
+            <text x="25" y="265" fill="#c084fc" font-size="10" font-weight="bold">CH4:</text>
+            <text x="70" y="265" fill="#ef4444" font-size="9">COM4 (เข้า L)</text>
+            <text x="140" y="265" fill="#c084fc" font-size="9">NO4 (ออกปลั๊ก)</text>
+          </g>
+
+          <!-- APPLIANCES DISPLAY (RIGHT) -->
+          <!-- Light Bulb -->
+          <g transform="translate(540, 45)">
+            <rect width="370" height="65" rx="8" fill="#1e293b" stroke="#facc15" stroke-width="1.5"/>
+            <text x="35" y="42" font-size="22" text-anchor="middle">💡</text>
+            <text x="65" y="32" fill="#ffffff" font-size="11" font-weight="bold">1. หลอดไฟบ้าน Downlight (AC 220V)</text>
+            <text x="65" y="48" fill="#94a3b8" font-size="9">สาย L รับจาก NO1 / สาย N รับจากราง Neutral</text>
+          </g>
+
+          <!-- Ceiling Fan -->
+          <g transform="translate(540, 120)">
+            <rect width="370" height="65" rx="8" fill="#1e293b" stroke="#4ade80" stroke-width="1.5"/>
+            <text x="35" y="42" font-size="22" text-anchor="middle">🌀</text>
+            <text x="65" y="32" fill="#ffffff" font-size="11" font-weight="bold">2. พัดลมระบายอากาศ / พัดลมเพดาน</text>
+            <text x="65" y="48" fill="#94a3b8" font-size="9">สาย L รับจาก NO2 / สาย N รับจากราง Neutral</text>
+          </g>
+
+          <!-- Electric Curtain -->
+          <g transform="translate(540, 195)">
+            <rect width="370" height="65" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="35" y="42" font-size="22" text-anchor="middle">🪟</text>
+            <text x="65" y="32" fill="#ffffff" font-size="11" font-weight="bold">3. มอเตอร์ม่านไฟฟ้า (Curtain Motor)</text>
+            <text x="65" y="48" fill="#94a3b8" font-size="9">สาย L รับจาก NO3 / สาย N รับจากราง Neutral</text>
+          </g>
+
+          <!-- Smart Plug Outlet -->
+          <g transform="translate(540, 270)">
+            <rect width="370" height="65" rx="8" fill="#1e293b" stroke="#c084fc" stroke-width="1.5"/>
+            <text x="35" y="42" font-size="22" text-anchor="middle">🔌</text>
+            <text x="65" y="32" fill="#ffffff" font-size="11" font-weight="bold">4. เต้ารับปลั๊กไฟอัจฉริยะ (Smart Outlet)</text>
+            <text x="65" y="48" fill="#94a3b8" font-size="9">สาย L รับจาก NO4 / สาย N รับจากราง Neutral</text>
+          </g>
+
+          <!-- AC WIRES -->
+          <!-- Breaker L to Relay COM Pins -->
+          <path d="M 55 95 C 55 200, 250 80, 310 80" stroke="#ef4444" stroke-width="3" class="glow-wire"/>
+          <path d="M 55 95 C 55 200, 250 145, 310 145" stroke="#ef4444" stroke-width="3" class="glow-wire"/>
+          <path d="M 55 95 C 55 200, 250 210, 310 210" stroke="#ef4444" stroke-width="3" class="glow-wire"/>
+          <path d="M 55 95 C 55 200, 250 275, 310 275" stroke="#ef4444" stroke-width="3" class="glow-wire"/>
+
+          <!-- Breaker N to Neutral Bus Bar -->
+          <path d="M 105 95 L 105 390" stroke="#38bdf8" stroke-width="3.5" stroke-dasharray="4,4"/>
+
+          <!-- Relay NO Pins to Appliances -->
+          <path d="M 405 80 L 540 80" stroke="#facc15" stroke-width="3" class="glow-wire"/>
+          <path d="M 405 145 L 540 145" stroke="#4ade80" stroke-width="3" class="glow-wire"/>
+          <path d="M 405 210 L 540 210" stroke="#38bdf8" stroke-width="3" class="glow-wire"/>
+          <path d="M 405 275 L 540 275" stroke="#c084fc" stroke-width="3" class="glow-wire"/>
+
+          <!-- Appliances Neutral Return to Bus Bar -->
+          <path d="M 880 110 L 880 390" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4,4"/>
+          <path d="M 880 185 L 880 390" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4,4"/>
+          <path d="M 880 260 L 880 390" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4,4"/>
+          <path d="M 880 335 L 880 390" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4,4"/>
+
+        </svg>
+      </div>
+    </div>
+
+    <!-- TAB 3: SMART FARM & MAGNETIC CONTACTOR DIAGRAM -->
+    <div id="sec-farm" class="tab-content my-4 hidden">
+      <div class="relative bg-slate-950 rounded-xl p-3 border border-white/10 overflow-hidden">
+        <svg class="w-full h-[450px]" viewBox="0 0 950 450" fill="none" stroke="currentColor">
+          <rect width="950" height="450" fill="url(#grid1)" />
+
+          <!-- MAGNETIC CONTACTOR BLOCK (FOR HEAVY PUMP) -->
+          <g transform="translate(30, 80)">
+            <rect width="220" height="260" rx="10" fill="#1e1b4b" stroke="#818cf8" stroke-width="2.5"/>
+            <text x="110" y="25" fill="#a5b4fc" font-size="12" font-weight="bold" text-anchor="middle">Magnetic Contactor 220V</text>
+            <text x="110" y="40" fill="#cbd5e1" font-size="8" text-anchor="middle">สวิตช์แม่เหล็กไฟฟ้าตัดต่อปั๊มน้ำแรงสูง</text>
+
+            <rect x="20" y="55" width="180" height="40" rx="4" fill="#0f172a"/>
+            <text x="110" y="78" fill="#facc15" font-size="10" font-weight="bold" text-anchor="middle">Coil (A1 / A2) สั่งจาก Relay NO1</text>
+
+            <rect x="20" y="110" width="180" height="130" rx="4" fill="#0f172a" stroke="#818cf8"/>
+            <text x="110" y="135" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">หน้าสัมผัสกำลัง (L1 ➡️ T1)</text>
+            <text x="110" y="160" fill="#38bdf8" font-size="9" text-anchor="middle">ทนกระแสได้สูงสุด 32A (ปั๊ม 3 แรงม้า)</text>
+            <text x="110" y="185" fill="#4ade80" font-size="9" text-anchor="middle">ป้องกันบอร์ดรีเลย์ไหม้ 100%</text>
+          </g>
+
+          <!-- FARM APPLIANCES -->
+          <!-- 1. Heavy Water Pump -->
+          <g transform="translate(480, 45)">
+            <rect width="430" height="75" rx="8" fill="#14532d" stroke="#4ade80" stroke-width="2"/>
+            <text x="40" y="48" font-size="26" text-anchor="middle">💧</text>
+            <text x="75" y="32" fill="#ffffff" font-size="12" font-weight="bold">1. ปั๊มน้ำเกษตรแรงสูง / สปริงเกอร์ (Irrigation Pump 2HP)</text>
+            <text x="75" y="52" fill="#86efac" font-size="9">ต่อผ่านหน้าสัมผัสกำลังของ Magnetic Contactor (รดน้ำต้นไม้อัตโนมัติ)</text>
+          </g>
+
+          <!-- 2. Exhaust Fan -->
+          <g transform="translate(480, 135)">
+            <rect width="430" height="75" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="40" y="48" font-size="26" text-anchor="middle">🌀</text>
+            <text x="75" y="32" fill="#ffffff" font-size="12" font-weight="bold">2. พัดลมระบายอากาศโรงเรือน (Greenhouse Exhaust Fan)</text>
+            <text x="75" y="52" fill="#bae6fd" font-size="9">ต่อผ่าน Relay NO2 (เปิดระบายอากาศออโต้เมื่ออุณหภูมิโรงเรือน > 32°C)</text>
+          </g>
+
+          <!-- 3. LED Grow Light -->
+          <g transform="translate(480, 225)">
+            <rect width="430" height="75" rx="8" fill="#1e293b" stroke="#facc15" stroke-width="1.5"/>
+            <text x="40" y="48" font-size="26" text-anchor="middle">☀️</text>
+            <text x="75" y="32" fill="#ffffff" font-size="12" font-weight="bold">3. หลอดไฟเร่งการเจริญเติบโตพืช (LED Grow Light 220V)</text>
+            <text x="75" y="52" fill="#fef08a" font-size="9">ต่อผ่าน Relay NO3 (เปิดไฟช่วยพืชสังเคราะห์แสงช่วงค่ำ 18:00 - 22:00 น.)</text>
+          </g>
+
+          <!-- 4. Solenoid Fogger Valve -->
+          <g transform="translate(480, 315)">
+            <rect width="430" height="75" rx="8" fill="#1e293b" stroke="#c084fc" stroke-width="1.5"/>
+            <text x="40" y="48" font-size="26" text-anchor="middle">🌫️</text>
+            <text x="75" y="32" fill="#ffffff" font-size="12" font-weight="bold">4. โซลินอยด์วาล์วพ่นหมอกความชื้น (24V DC Solenoid Fogger)</text>
+            <text x="75" y="52" fill="#e9d5ff" font-size="9">ต่อผ่าน Relay NO4 + หม้อแปลง 24V (เปิดพ่นหมอกออโต้เมื่อความชื้น < 45%)</text>
+          </g>
+
+          <!-- Traces -->
+          <path d="M 250 135 L 480 80" stroke="#4ade80" stroke-width="3.5" class="glow-wire"/>
+          <path d="M 250 200 L 480 170" stroke="#38bdf8" stroke-width="3" class="glow-wire"/>
+          <path d="M 250 250 L 480 260" stroke="#facc15" stroke-width="3" class="glow-wire"/>
+          <path d="M 250 290 L 480 350" stroke="#c084fc" stroke-width="3" class="glow-wire"/>
+
+        </svg>
+      </div>
+    </div>
+
+    <!-- Master Safety Summary -->
+    <div class="mt-4 p-4 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-xs leading-relaxed space-y-1">
+      <div class="font-bold text-indigo-300 text-sm flex items-center gap-1.5 mb-1">
+        <span>📘</span> สรุปข้อแนะนำการติดตั้งระบบไฟฟ้ามาตรฐานวิศวกรรม
+      </div>
+      <p class="text-slate-300">• <b>ขั้ว COM (Common):</b> ต้องต่อสายไฟมีไฟ **L (Live 220V)** เข้าทุกช่องของรีเลย์</p>
+      <p class="text-slate-300">• <b>ขั้ว NO (Normally Open):</b> คือสายไฟที่จะสวิตช์จ่ายออกไปหาหลอดไฟ พัดลม ปั๊มน้ำ หรือปลั๊กไฟบ้าน</p>
+      <p class="text-slate-300">• <b>ปั๊มน้ำเกษตรขนาดใหญ่:</b> ต้องต่อผ่าน Magnetic Contactor 220V เสมอ เพื่อป้องกันกระแสไฟกระชากทำลายรีเลย์และ ESP32</p>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+        btn.classList.add('text-slate-400');
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+      const activeBtn = document.getElementById('tab-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+        activeBtn.classList.remove('text-slate-400');
+      }
+      const activeSec = document.getElementById('sec-' + tabId);
+      if (activeSec) activeSec.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
