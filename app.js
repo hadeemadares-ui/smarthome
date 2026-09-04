@@ -356,12 +356,37 @@ function vHome() {
     </div>
 
     <!-- Mode Selector Chips -->
-    <div style="margin-bottom: 16px;">
+    <div style="margin-bottom: 14px;">
       ${["home", "away"].map(m => `
         <span class="chip ${S._mode === m ? "act" : ""}" data-mode="${m}">
           ${m === "home" ? "🏠 โหมดอยู่บ้าน (Home)" : "🚗 โหมดไม่อยู่บ้าน (Away)"}
         </span>
       `).join("")}
+    </div>
+
+    <!-- Ultimate Smart Scenes & Thai Voice Assistant Bar -->
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; padding: 12px 14px; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+        <span style="font-size: 0.82rem; font-weight: 700; color: #fff;">🎬 โหมดฉากอัจฉริยะ & สั่งงานด้วยเสียง</span>
+        <button id="btnVoiceThai" onclick="startThaiVoiceAssistant()" style="background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; border: 0; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          🎙️ สั่งงานด้วยเสียงภาษาไทย
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+        <button onclick="triggerScene('movie')" style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
+          🎬 ดูหนัง
+        </button>
+        <button onclick="triggerScene('sleep')" style="background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
+          🌙 เข้านอน
+        </button>
+        <button onclick="triggerScene('away')" style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
+          🚪 ออกจากบ้าน
+        </button>
+        <button onclick="triggerScene('farm_water')" style="background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: #34d399; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
+          🌾 รดน้ำฟาร์ม
+        </button>
+      </div>
     </div>
 
     <!-- Quick IoT Remote Shortcut Banner -->
@@ -1842,3 +1867,107 @@ setInterval(() => {
 tickSensors();
 render();
 logEvent("ระบบเริ่มทำงาน", "ok");
+
+/* ══════════ Ultimate Feature 1: One-Tap Smart Scenes ══════════ */
+function triggerScene(sceneId) {
+  if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+  
+  if (sceneId === 'movie') {
+    if (S['light.living']) { S['light.living'].on = true; S['light.living'].bri = 25; }
+    if (S['curtain.living']) S['curtain.living'].on = false;
+    if (S['ac.living']) { S['ac.living'].on = true; S['ac.living'].temp = 22; }
+    if (S['tv']) S['tv'].on = true;
+    toast("🎬 เปิดโหมดดูหนังเรียบร้อยแล้ว (ปิดม่าน + แอร์ 22°C + แสงไฟ 25%)");
+    speakThaiText("เปิดโหมดดูหนังเรียบร้อยแล้วค่ะ");
+  } else if (sceneId === 'sleep') {
+    Object.keys(S).forEach(id => {
+      if (id.startsWith('light.') || id.startsWith('fan.') || id.startsWith('outlet.')) {
+        S[id].on = false;
+      }
+    });
+    if (S['ac.bed']) { S['ac.bed'].on = true; S['ac.bed'].temp = 25; }
+    toast("🌙 เปิดโหมดเข้านอนเรียบร้อยแล้ว (ปิดไฟทั้งบ้าน + แอร์ 25°C)");
+    speakThaiText("เปิดโหมดเข้านอน ปิดไฟทั้งบ้านแล้วค่ะ");
+  } else if (sceneId === 'away') {
+    Object.keys(S).forEach(id => { if (S[id].on !== undefined) S[id].on = false; });
+    SEN.motion = 1;
+    toast("🚪 เปิดโหมดออกจากบ้าน (ปิดอุปกรณ์ทั้งบ้าน + เปิดกล้อง AI กันบุกรุก)");
+    speakThaiText("เปิดโหมดออกจากบ้าน ป้องกันการบุกรุกแล้วค่ะ");
+  } else if (sceneId === 'farm_water') {
+    if (S['light.living']) S['light.living'].on = true;
+    if (S['fan.living']) S['fan.living'].on = true;
+    toast("🌾 เปิดระบบรดน้ำต้นไม้สปริงเกอร์ & พัดลมโรงเรือน 5 นาที");
+    speakThaiText("เปิดระบบรดน้ำแปลงผักอัตโนมัติแล้วค่ะ");
+  }
+  
+  saveState();
+  render(true);
+}
+
+/* ══════════ Ultimate Feature 2: Thai Voice Assistant Engine ══════════ */
+function speakThaiText(text) {
+  if ('speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'th-TH';
+      u.rate = 1.0;
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+}
+
+function startThaiVoiceAssistant() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    alert("เบราว์เซอร์นี้ยังไม่รองรับระบบสั่งงานด้วยเสียง กรุณาใช้ Google Chrome บน Android/PC ครับ");
+    return;
+  }
+
+  const rec = new SpeechRec();
+  rec.lang = 'th-TH';
+  rec.continuous = false;
+  rec.interimResults = false;
+
+  toast("🎙️ กำลังฟังเสียง... พูดคำสั่งภาษาไทยได้เลยครับ");
+  speakThaiText("กำลังฟังเสียงค่ะ พูดคำสั่งได้เลยค่ะ");
+
+  rec.onresult = (e) => {
+    const text = e.results[0][0].transcript.toLowerCase();
+    toast(`🗣️ คุณพูดว่า: "${text}"`);
+
+    if (text.includes("เปิดไฟ")) {
+      Object.keys(S).forEach(id => { if (id.startsWith('light.')) S[id].on = true; });
+      toast("💡 เปิดไฟทุกดวงเรียบร้อยแล้ว");
+      speakThaiText("เปิดไฟทุกดวงแล้วค่ะ");
+    } else if (text.includes("ปิดไฟ")) {
+      Object.keys(S).forEach(id => { if (id.startsWith('light.')) S[id].on = false; });
+      toast("🌙 ปิดไฟทุกดวงเรียบร้อยแล้ว");
+      speakThaiText("ปิดไฟทุกดวงแล้วค่ะ");
+    } else if (text.includes("เปิดแอร์")) {
+      if (S['ac.living']) S['ac.living'].on = true;
+      if (S['ac.bed']) S['ac.bed'].on = true;
+      toast("❄️ เปิดแอร์เรียบร้อยแล้ว");
+      speakThaiText("เปิดแอร์เรียบร้อยแล้วค่ะ");
+    } else if (text.includes("ปิดทั้งหมด") || text.includes("ปิดบ้าน")) {
+      triggerScene('away');
+    } else if (text.includes("ดูหนัง")) {
+      triggerScene('movie');
+    } else if (text.includes("เข้านอน")) {
+      triggerScene('sleep');
+    } else if (text.includes("รดน้ำ")) {
+      triggerScene('farm_water');
+    } else {
+      toast(`⚠️ ไม่พบคำสั่ง "${text}" ลองพูด "เปิดไฟ" หรือ "โหมดดูหนัง"`);
+      speakThaiText("ขออภัยค่ะ ลองพูดเปิดไฟ หรือโหมดดูหนังนะคะ");
+    }
+    saveState();
+    render(true);
+  };
+
+  rec.onerror = () => {
+    toast("❌ สัญญาณเสียงไม่ชัดเจน กรุณาลองพูดใหม่อีกครั้ง");
+  };
+
+  try { rec.start(); } catch (err) {}
+}
