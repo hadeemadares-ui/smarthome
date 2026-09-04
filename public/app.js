@@ -1971,3 +1971,66 @@ function startThaiVoiceAssistant() {
 
   try { rec.start(); } catch (err) {}
 }
+
+/* ══════════ Ultimate Feature 3: LINE Notify Alert Engine ══════════ */
+function sendLineNotifyAlert(message, customToken = null) {
+  const token = customToken || localStorage.getItem("line_notify_token");
+  if (!token) {
+    console.log("LINE Notify Dispatch (Local Simulator):", message);
+    toast("🔔 LINE Alert: " + message);
+    return;
+  }
+  
+  fetch("https://notify-api.line.me/api/notify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": "Bearer " + token
+    },
+    body: new URLSearchParams({ message: message })
+  }).then(res => {
+    if (res.ok) toast("📲 ส่งการแจ้งเตือนเข้า LINE เรียบร้อยแล้ว");
+  }).catch(err => {
+    console.error("LINE Notify Error:", err);
+  });
+}
+
+/* ══════════ Ultimate Feature 4: Smart Farm Pump Safety & Dry Run Protection ══════════ */
+function checkSmartFarmSafety(soilMoisturePct, pumpRunning, currentDrawAmp = 0) {
+  // Dry run protection: If pump running but current draw is 0 (water empty or broken belt)
+  if (pumpRunning && currentDrawAmp < 0.2) {
+    sendLineNotifyAlert("⚠️ แจ้งเตือนฟาร์ม: ปั๊มน้ำทำงานแต่น้ำไม่ไหล! ตัดไฟปั๊มป้องกันมอเตอร์ไหม้อัตโนมัติ");
+    if (S['switch.pump']) S['switch.pump'].on = false;
+    saveState();
+    render(true);
+    return false;
+  }
+  
+  // Soil moisture auto-watering recommendation
+  if (soilMoisturePct < 25 && !pumpRunning) {
+    sendLineNotifyAlert("🌱 ความชื้นในดินต่ำเพียง " + soilMoisturePct + "% ระบบเริ่มรดน้ำให้อัตโนมัติ");
+    triggerScene('farm_water');
+  }
+  return true;
+}
+
+/* ══════════ Ultimate Feature 5: TOU Electric Tariff Estimator ══════════ */
+function calculateTOUEnergyCost(kwhTotal) {
+  const now = new Date();
+  const hour = now.getHours();
+  const day = now.getDay();
+  
+  // On-Peak: Mon-Fri 09:00 - 22:00 (Rate ~ 5.8 ฿/kWh)
+  // Off-Peak: Sat-Sun or Mon-Fri 22:00 - 09:00 (Rate ~ 2.6 ฿/kWh)
+  const isWeekend = (day === 0 || day === 6);
+  const isOnPeak = !isWeekend && (hour >= 9 && hour < 22);
+  const rate = isOnPeak ? 5.8 : 2.6;
+  
+  const cost = kwhTotal * rate;
+  return {
+    kwh: kwhTotal,
+    rate: rate,
+    costBaht: cost.toFixed(2),
+    tariffType: isOnPeak ? "On-Peak (ช่วงไฟแพง ฿5.8/หน่วย)" : "Off-Peak (ช่วงไฟถูก ฿2.6/หน่วย)"
+  };
+}
