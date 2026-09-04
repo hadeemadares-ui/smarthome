@@ -798,8 +798,16 @@ function vRemote() {
 
       <!-- TV Minimal Controls -->
       <div id="irTvView" class="${irDeviceType !== 'tv' ? 'hide' : ''}">
+        <!-- Live TV Power State Badge & Toggle Feedback -->
+        <div id="tvPowerBadge" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:12px; margin-bottom:12px; border:1px solid var(--border-glass);">
+          <span style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">สถานะทีวี (TV Power State):</span>
+          <span id="tvStateText" style="font-size:0.8rem; font-weight:700; color:${S['tv']?.on ? '#34d399' : '#f87171'};">
+            ${S['tv']?.on ? '🟢 เปิดอยู่ (ON)' : '🔴 ปิดอยู่ (OFF)'}
+          </span>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🔴 Power</button>
+          <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🔴 Power Toggle</button>
           <button class="ir-cmd-btn" data-ircmd="mute" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer;">🔇 Mute</button>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
@@ -1054,7 +1062,18 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
     mqttClient.publish(mqttTopic, JSON.stringify(irPayload));
   }
 
-  // 5. Update Status Feedback Text
+  // 6. Update Power State Tracking & Badge Text
+  if (cmdType === 'power' && S['tv']) {
+    S['tv'].on = !S['tv'].on;
+    saveState();
+    const tvStateText = document.getElementById('tvStateText');
+    if (tvStateText) {
+      tvStateText.textContent = S['tv'].on ? '🟢 เปิดอยู่ (ON)' : '🔴 ปิดอยู่ (OFF)';
+      tvStateText.style.color = S['tv'].on ? '#34d399' : '#f87171';
+    }
+  }
+
+  // 7. Update Status Feedback Text
   const statusEl = document.getElementById('irStatusText');
   if (statusEl) {
     statusEl.textContent = `📡 ยิงสัญญาณ IR [${activeBrand.toUpperCase()} ${cmdType.toUpperCase()}]: ${hexCode}`;
