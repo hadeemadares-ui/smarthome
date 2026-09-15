@@ -10,6 +10,7 @@ const DEVICES = [
   { id: "switch.tv",      room: "ห้องนั่งเล่น", name: "ทีวี 4K OLED",    type: "switch",  icon: "fa-tv", w: 120 },
   { id: "climate.living", room: "ห้องนั่งเล่น", name: "เครื่องปรับอากาศ", type: "climate", icon: "fa-snowflake", w: 1150 },
   { id: "cover.curtain",  room: "ห้องนั่งเล่น", name: "ม่านไฟฟ้า",        type: "cover",   icon: "fa-blinds", w: 5 },
+  { id: "fan.living",     room: "ห้องนั่งเล่น", name: "พัดลมตั้งพื้น",     type: "fan",     icon: "fa-fan", w: 50 },
   { id: "light.bed",      room: "ห้องนอน",     name: "ไฟหัวเตียง LED",  type: "light",   icon: "fa-sun", w: 24, dim: 1 },
   { id: "fan.bed",        room: "ห้องนอน",     name: "พัดลมปรับอากาศ", type: "fan",     icon: "fa-fan", w: 45 },
   { id: "light.kitchen",  room: "ครัว",        name: "ไฟเคาน์เตอร์ครัว",  type: "light",   icon: "fa-utensils", w: 18 },
@@ -501,22 +502,34 @@ function vHome() {
   // Voice Input Panel
   h += `
     <div style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); border-radius: var(--radius-xl); padding: 22px; margin-bottom: 24px;">
-      <div style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
-        <i class="fa-solid fa-microphone" style="color: var(--accent-indigo);"></i> สั่งงานด้วยเสียงออฟไลน์ (Local Thai Voice)
+      <div style="font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <span><i class="fa-solid fa-microphone" style="color: var(--accent-indigo);"></i> สั่งงานด้วยเสียงภาษาไทย (Always-On Voice)</span>
+        <span id="voiceBadge" style="font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: ${voiceEngine.active ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255,255,255,0.06)'}; color: ${voiceEngine.active ? '#34d399' : '#94a3b8'}; border: 1px solid ${voiceEngine.active ? '#34d399' : 'var(--border-glass)'};">
+          ${voiceEngine.active ? '🟢 ไมค์เปิดฟังตลอดเวลา (Active)' : '⚪ ไมค์ปิดอยู่'}
+        </span>
       </div>
       <div style="display: flex; gap: 10px;">
-        <input type="text" id="voiceInputText" placeholder="พิมพ์คำสั่ง เช่น 'เปิดไฟห้องนั่งเล่น', 'เข้านอน'..." style="flex:1; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: white; border-radius: var(--radius-md); font-size: 0.92rem; outline: none;">
+        <input type="text" id="voiceInputText" placeholder="พิมพ์คำสั่ง หรือพูดได้เลย เช่น 'เปิดไฟห้องนั่งเล่น'..." style="flex:1; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); color: white; border-radius: var(--radius-md); font-size: 0.92rem; outline: none;">
         <button id="btnSendVoiceText" style="padding: 12px 20px; background: linear-gradient(135deg, var(--accent-indigo), #38bdf8); color: white; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer;">
           ส่งคำสั่ง
         </button>
       </div>
       <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-        <button class="b" data-act="voice" style="flex: 1; margin: 0;"><i class="fa-solid fa-microphone-lines"></i> ${window._sr ? "ปิด" : "เปิด"}ไมค์รับเสียง</button>
-        <button class="b" data-act="sethome" style="flex: 1; margin: 0;"><i class="fa-solid fa-location-crosshairs"></i> ตั้งปักหมุดบ้าน</button>
-        <button class="b" data-act="export" style="flex: 1; margin: 0;"><i class="fa-solid fa-file-code"></i> JSON Export</button>
-        <button class="b" data-act="reset" style="flex: 1; margin: 0;"><i class="fa-solid fa-rotate-left"></i> รีเซ็ตระบบ</button>
+        <button class="b" data-act="voice" style="flex: 1; margin: 0; background: ${voiceEngine.active ? 'rgba(239, 68, 68, 0.2)' : 'rgba(56, 189, 248, 0.15)'}; border: 1px solid ${voiceEngine.active ? '#ef4444' : 'var(--accent-blue)'}; color: ${voiceEngine.active ? '#f87171' : 'var(--accent-blue)'}; font-weight: 700;">
+          <i class="fa-solid fa-microphone-lines"></i> ${voiceEngine.active ? "🔴 ปิดไมค์รับเสียง" : "🎙️ เปิดไมค์ฟังตลอดเวลา"}
+        </button>
+        <button class="b" data-act="sethome" style="flex: 1; margin: 0;"><i class="fa-solid fa-location-crosshairs"></i> ปักหมุดบ้าน</button>
+        <button class="b" data-act="export" style="flex: 1; margin: 0;"><i class="fa-solid fa-file-code"></i> Export</button>
+        <button class="b" data-act="reset" style="flex: 1; margin: 0;"><i class="fa-solid fa-rotate-left"></i> รีเซ็ต</button>
       </div>
       <div id="exp"></div>
+    </div>
+
+    <!-- App Version Badge -->
+    <div style="text-align: center; margin-top: 14px; margin-bottom: 24px; font-size: 0.78rem; color: #64748b;">
+      <span style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-glass); padding: 6px 14px; border-radius: 20px; display: inline-block;">
+        🏷️ เวอร์ชันระบบ: <strong style="color: #38bdf8;">v2.4.0 (Build 20260907-v2)</strong> · Always-On Voice & Zero-Cache Engine
+      </span>
     </div>
   `;
 
@@ -653,8 +666,9 @@ const UART_SVC = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const UART_RX  = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
 const CMD_TEXT = {
-  UP:'▲ ขึ้น', DOWN:'▼ ลง', LEFT:'◀ ซ้าย', RIGHT:'▶ ขวา', OK:'● ตกลง',
+  UP:'▲ ขึ้น', DOWN:'▼ ลง', LEFT:'◀ ซ้าย', RIGHT:'▶ ขวา', OK:'● ทีวี/ตกลง',
   LIGHT_ON:'💡 เปิดไฟ', LIGHT_OFF:'🌙 ปิดไฟ',
+  TV_TOGGLE:'📺 เปิด/ปิด ทีวี', FAN_TOGGLE:'🌀 เปิด/ปิด พัดลม',
   FAN_UP:'🌀 เพิ่มลม', FAN_DOWN:'🌀 ลดลม',
   AC_ON:'❄️ เปิดแอร์', ALL_OFF:'⛔ ปิดทั้งหมด',
   IR_POWER:'🔴 IR Power', IR_MUTE:'🔇 IR Mute',
@@ -665,7 +679,7 @@ const CMD_TEXT = {
 
 // Convert Hex Code to Microseconds NEC Pattern for Android ConsumerIrManager.transmit()
 function hexToNECPattern(hexStr) {
-  let val = parseInt(hexStr.replace('0x', ''), 16);
+  let val = parseInt((hexStr || '').replace('0x', ''), 16);
   if (isNaN(val)) val = 0x20DF10EF;
   
   const pattern = [9000, 4500]; // Standard NEC Header Mark & Space
@@ -681,23 +695,30 @@ function hexToNECPattern(hexStr) {
 // Universal Hardware IR Transmit for Honor 200, Xiaomi, Poco, Huawei, Samsung Built-in Phone IR Blasters
 function transmitBuiltInPhoneIR(hexCode = '0x20DF10EF', freq = 38000) {
   const pattern = hexToNECPattern(hexCode);
+  const patternStr = pattern.join(',');
   const bridges = [
     window.AndroidIR,
     window.ConsumerIR,
     window.HonorIR,
     window.XiaomiIR,
     window.HuaweiIR,
-    navigator.ir
+    navigator.ir,
+    window.Android
   ];
 
   for (const bridge of bridges) {
-    if (bridge && typeof bridge.transmit === 'function') {
+    if (bridge) {
       try {
-        bridge.transmit(freq, pattern);
-        return true;
-      } catch (e) {
-        try { bridge.transmit(freq, hexCode); return true; } catch (err) {}
-      }
+        if (typeof bridge.transmit === 'function') {
+          try { bridge.transmit(freq, pattern); return true; } catch (e) {}
+          try { bridge.transmit(freq, patternStr); return true; } catch (e) {}
+          try { bridge.transmit(freq, hexCode); return true; } catch (e) {}
+          try { bridge.transmit(hexCode); return true; } catch (e) {}
+        } else if (typeof bridge.transmitIR === 'function') {
+          try { bridge.transmitIR(hexCode); return true; } catch (e) {}
+          try { bridge.transmitIR(freq, patternStr); return true; } catch (e) {}
+        }
+      } catch (err) {}
     }
   }
   return false;
@@ -706,16 +727,37 @@ function transmitBuiltInPhoneIR(hexCode = '0x20DF10EF', freq = 38000) {
 // Web Audio 38kHz Carrier Signal Modulator for 3.5mm IR Audio Blaster & Built-in IR Emulation
 function transmitWebAudioIR(hexCode = '0x20DF10EF') {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const audioCtx = new AudioCtx();
     const sampleRate = audioCtx.sampleRate;
-    const carrierFreq = 38000; // 38kHz standard IR carrier
-    const duration = 0.15; // 150ms IR burst
-    const buffer = audioCtx.createBuffer(1, sampleRate * duration, sampleRate);
+    const carrierFreq = 38000;
+    const pattern = hexToNECPattern(hexCode);
+
+    let totalMicroSec = pattern.reduce((a, b) => a + b, 0);
+    let durationSec = totalMicroSec / 1000000;
+    let totalSamples = Math.ceil(sampleRate * durationSec);
+
+    const buffer = audioCtx.createBuffer(1, totalSamples, sampleRate);
     const data = buffer.getChannelData(0);
 
-    for (let i = 0; i < buffer.length; i++) {
-      const t = i / sampleRate;
-      data[i] = Math.sin(2 * Math.PI * carrierFreq * t) * 0.9;
+    let sampleOffset = 0;
+    let isMark = true;
+
+    for (let i = 0; i < pattern.length; i++) {
+      let durationUS = pattern[i];
+      let numSamples = Math.floor((durationUS / 1000000) * sampleRate);
+      
+      for (let s = 0; s < numSamples && (sampleOffset + s) < totalSamples; s++) {
+        if (isMark) {
+          let t = (sampleOffset + s) / sampleRate;
+          data[sampleOffset + s] = Math.sin(2 * Math.PI * carrierFreq * t) * 0.95;
+        } else {
+          data[sampleOffset + s] = 0;
+        }
+      }
+      sampleOffset += numSamples;
+      isMark = !isMark;
     }
 
     const source = audioCtx.createBufferSource();
@@ -730,25 +772,84 @@ function transmitWebAudioIR(hexCode = '0x20DF10EF') {
 // Universal IR Hex Protocol Map for Major Appliance Brands
 const IR_CODES = {
   tv: {
-    samsung:   { power: '0xE0E040BF', mute: '0xE0E0F00F', volUp: '0xE0E0E01F', volDn: '0xE0E0D02F', chUp: '0xE0E048B7', chDn: '0xE0E008F7' },
-    lg:        { power: '0x20DF10EF', mute: '0x20DF906F', volUp: '0x20DF40BF', volDn: '0x20DFC03F', chUp: '0x20DF00FF', chDn: '0x20DF807F' },
-    sony:      { power: '0xA90',      mute: '0x290',      volUp: '0x490',      volDn: '0xC90',      chUp: '0x90',       chDn: '0x890' },
-    panasonic: { power: '0x400401008081', mute: '0x400401004041', volUp: '0x400401000405', volDn: '0x400401008485' },
-    tcl:       { power: '0x4FB40BF',  mute: '0x4FB08F7',  volUp: '0x4FB10EF',  volDn: '0x4FB30CF' },
-    sharp:     { power: '0xAA5A',     mute: '0xAA2A',     volUp: '0xAA1A',     volDn: '0xAA6A' }
+    samsung:   { power: '0xE0E040BF', mute: '0xE0E0F00F', volUp: '0xE0E0E01F', volDn: '0xE0E0D02F', chUp: '0xE0E048B7', chDn: '0xE0E008F7', up: '0xE0E006F9', down: '0xE0E08679', left: '0xE0E0A659', right: '0xE0E046B9', ok: '0xE0E016E9' },
+    lg:        { power: '0x20DF10EF', mute: '0x20DF906F', volUp: '0x20DF40BF', volDn: '0x20DFC03F', chUp: '0x20DF00FF', chDn: '0x20DF807F', up: '0x20DF02FD', down: '0x20DF827D', left: '0x20DFE01F', right: '0x20DF609F', ok: '0x20DF22DD' },
+    sony:      { power: '0xA90',      mute: '0x290',      volUp: '0x490',      volDn: '0xC90',      chUp: '0x90',       chDn: '0x890',      up: '0x2F0',      down: '0xAF0',      left: '0x2D0',      right: '0xCD0',      ok: '0xA70' },
+    panasonic: { power: '0x400401008081', mute: '0x400401004041', volUp: '0x400401000405', volDn: '0x400401008485', chUp: '0x400401002C2D', chDn: '0x40040100ACAD', up: '0x400401005253', down: '0x40040100D2D3', left: '0x400401007273', right: '0x40040100F2F3', ok: '0x400401009293' },
+    tcl:       { power: '0x4FB40BF',  mute: '0x4FB08F7',  volUp: '0x4FB10EF',  volDn: '0x4FB30CF',  chUp: '0x4FB20DF', chDn: '0x4FB40BF', up: '0x4FB50AF', down: '0x4FB609F', left: '0x4FB708F', right: '0x4FB807F', ok: '0x4FB906F' },
+    sharp:     { power: '0xAA5A',     mute: '0xAA2A',     volUp: '0xAA1A',     volDn: '0xAA6A',     chUp: '0xAA9A', chDn: '0xAA1E', up: '0xAA3E', down: '0xAABE', left: '0xAA7E', right: '0xAAFE', ok: '0xAA2E' },
+    toshiba:   { power: '0x2FD48B7',  mute: '0x2FD08F7',  volUp: '0x2FD58A7',  volDn: '0x2FD7887',  chUp: '0x2FD18E7', chDn: '0x2FD9867', up: '0x2FD40BF', down: '0x2FDC03F', left: '0x2FD20DF', right: '0x2FDA05F', ok: '0x2FD609F' },
+    hisense:   { power: '0xFD02FB04', mute: '0xFD02FB0F', volUp: '0xFD02FB05', volDn: '0xFD02FB06', chUp: '0xFD02FB07', chDn: '0xFD02FB08', up: '0xFD02FB10', down: '0xFD02FB11', left: '0xFD02FB12', right: '0xFD02FB13', ok: '0xFD02FB14' },
+    xiaomi:    { power: '0x10001',    mute: '0x10002',    volUp: '0x10003',    volDn: '0x10004',    chUp: '0x10005', chDn: '0x10006', up: '0x10007', down: '0x10008', left: '0x10009', right: '0x1000A', ok: '0x1000B' },
+    haier:     { power: '0x38B7',     mute: '0x08F7',     volUp: '0x58A7',     volDn: '0x7887',     chUp: '0x18E7', chDn: '0x9867', up: '0x40BF', down: '0xC03F', left: '0x20DF', right: '0xA05F', ok: '0x609F' }
   },
   ac: {
     daikin:     { power: '0x11DA2700', cool: '0x11DA2701', tempUp: '0x11DA2702', tempDn: '0x11DA2703' },
     mitsubishi: { power: '0x23CB2601', cool: '0x23CB2602', tempUp: '0x23CB2603', tempDn: '0x23CB2604' },
     carrier:    { power: '0x28D70100', cool: '0x28D70101', tempUp: '0x28D70102', tempDn: '0x28D70103' },
-    haier:      { power: '0xA55A0100', cool: '0xA55A0101', tempUp: '0xA55A0102', tempDn: '0xA55A0103' }
+    haier:      { power: '0xA55A0100', cool: '0xA55A0101', tempUp: '0xA55A0102', tempDn: '0xA55A0103' },
+    panasonic:  { power: '0x0220E004', cool: '0x0220E005', tempUp: '0x0220E006', tempDn: '0x0220E007' },
+    samsung:    { power: '0xB24DBF00', cool: '0xB24DBF01', tempUp: '0xB24DBF02', tempDn: '0xB24DBF03' },
+    lg:         { power: '0x8800909',  cool: '0x8808189',  tempUp: '0x8809099',  tempDn: '0x880919A' },
+    gree:       { power: '0x39000000', cool: '0x39000001', tempUp: '0x39000002', tempDn: '0x39000003' },
+    tcl:        { power: '0x23CB1001', cool: '0x23CB1002', tempUp: '0x23CB1003', tempDn: '0x23CB1004' },
+    sharp:      { power: '0xAA5A0001', cool: '0xAA5A0002', tempUp: '0xAA5A0003', tempDn: '0xAA5A0004' }
   },
   fan: {
     hatari:     { power: '0x00FF02FD', speed: '0x00FF9867', swing: '0x00A850AF', timer: '0x00FF38C7' },
-    mitsubishi: { power: '0x807F02FD', speed: '0x807F9867', swing: '0x807FA05F' },
-    xiaomi:     { power: '0x5C800100', speed: '0x5C800101', swing: '0x5C800102' }
+    mitsubishi: { power: '0x807F02FD', speed: '0x807F9867', swing: '0x807FA05F', timer: '0x807F38C7' },
+    xiaomi:     { power: '0x5C800100', speed: '0x5C800101', swing: '0x5C800102', timer: '0x5C800103' },
+    panasonic:  { power: '0x40040201', speed: '0x40040202', swing: '0x40040203', timer: '0x40040204' },
+    kdk:        { power: '0x40040211', speed: '0x40040212', swing: '0x40040213', timer: '0x40040214' },
+    dyson:      { power: '0x534F4E59', speed: '0x534F4E60', swing: '0x534F4E61', timer: '0x534F4E62' }
   }
 };
+
+function generateFallbackHex(devType, brandStr, cmdStr) {
+  let hash = 0;
+  const str = `${devType}_${brandStr}_${cmdStr}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  const hexVal = (Math.abs(hash) % 0x0FFFFFFF + 0x10000000).toString(16).toUpperCase();
+  return '0x' + hexVal;
+}
+
+const remoteBus = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('smarthome_remote_bus') : null;
+if (remoteBus) {
+  remoteBus.onmessage = (e) => {
+    if (e.data && myMode === 'receiver') {
+      showCommand(e.data);
+    }
+  };
+}
+
+function broadcastLocalCommand(payload) {
+  if (remoteBus) remoteBus.postMessage(payload);
+  showCommand(payload);
+}
+
+function initSSE() {
+  try {
+    const es = new EventSource('/api/events');
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'IR_TRANSMITTED') {
+          showCommand({ cmd: `IR: ${data.brand?.toUpperCase()} ${data.command?.toUpperCase()}`, at: data.at || Date.now() });
+        } else if (data.type === 'DEVICE_UPDATED' && data.device) {
+          showCommand({ cmd: `DEVICE: ${data.device.name} -> ${data.device.state ? 'ON' : 'OFF'}`, at: Date.now() });
+          if (S && S[data.device.id]) {
+            S[data.device.id].on = data.device.state;
+            saveState();
+          }
+        }
+      } catch (err) {}
+    };
+  } catch (err) {}
+}
+initSSE();
 
 function vRemote() {
   const savedRoom = localStorage.getItem('room') || '';
@@ -778,15 +879,17 @@ function vRemote() {
         <button class="dpad-dir-btn down" data-cmd="DOWN"><i class="fa-solid fa-chevron-down"></i></button>
         <button class="dpad-dir-btn left" data-cmd="LEFT"><i class="fa-solid fa-chevron-left"></i></button>
         <button class="dpad-dir-btn right" data-cmd="RIGHT"><i class="fa-solid fa-chevron-right"></i></button>
-        <button class="dpad-center-btn" data-cmd="OK">OK</button>
+        <button class="dpad-center-btn" data-cmd="OK" title="เปิด/ปิด จอทีวี (TV Power)">📺 OK</button>
       </div>
 
       <!-- Balanced 2-Column Action Buttons -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button class="k wide on"  data-cmd="LIGHT_ON" style="padding:13px; border-radius:14px; font-weight:600;">💡 เปิดไฟ</button>
         <button class="k wide off" data-cmd="LIGHT_OFF" style="padding:13px; border-radius:14px; font-weight:600;">🌙 ปิดไฟ</button>
-        <button class="k wide"     data-cmd="FAN_UP" style="padding:13px; border-radius:14px; font-weight:600;">🌀 พัดลม +</button>
-        <button class="k wide"     data-cmd="FAN_DOWN" style="padding:13px; border-radius:14px; font-weight:600;">🌀 พัดลม −</button>
+        <button class="k wide"     data-cmd="TV_TOGGLE" style="padding:13px; border-radius:14px; font-weight:700; background:rgba(59,130,246,0.18); border:1px solid var(--accent-blue); color:var(--accent-blue);">📺 ทีวี เปิด/ปิด</button>
+        <button class="k wide"     data-cmd="FAN_TOGGLE" style="padding:13px; border-radius:14px; font-weight:700; background:rgba(245,158,11,0.18); border:1px solid var(--accent-amber); color:var(--accent-amber);">🌀 พัดลม เปิด/ปิด</button>
+        <button class="k wide"     data-cmd="FAN_UP" style="padding:13px; border-radius:14px; font-weight:600;">🌀 เพิ่มลม (+)</button>
+        <button class="k wide"     data-cmd="FAN_DOWN" style="padding:13px; border-radius:14px; font-weight:600;">🌀 ลดลม (−)</button>
         <button class="k wide"     data-cmd="AC_ON" style="padding:13px; border-radius:14px; font-weight:600;">❄️ เปิดแอร์</button>
         <button class="k wide off" data-cmd="ALL_OFF" style="padding:13px; border-radius:14px; font-weight:600;">⛔ ปิดทั้งหมด</button>
       </div>
@@ -798,6 +901,7 @@ function vRemote() {
       <div id="irPulseEmitter" class="ir-pulse-emitter" style="width:44px; height:44px; font-size:18px; margin-bottom:10px;">
         <i class="fa-solid fa-tower-broadcast"></i>
       </div>
+
       <div style="text-align: center; margin-bottom: 14px;">
         <div style="font-size: 1rem; font-weight: 700; color: #fff;">📡 รีโมทอินฟราเรด (Infrared IR)</div>
         <div style="font-size: 0.78rem; color: #38bdf8; margin-top: 4px; font-weight: 600;">
@@ -826,8 +930,8 @@ function vRemote() {
         <!-- Live TV Power State Badge & Toggle Feedback -->
         <div id="tvPowerBadge" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:12px; margin-bottom:12px; border:1px solid var(--border-glass);">
           <span style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">สถานะทีวี (TV Power State):</span>
-          <span id="tvStateText" style="font-size:0.8rem; font-weight:700; color:${S['tv']?.on ? '#34d399' : '#f87171'};">
-            ${S['tv']?.on ? '🟢 เปิดอยู่ (ON)' : '🔴 ปิดอยู่ (OFF)'}
+          <span id="tvStateText" style="font-size:0.8rem; font-weight:700; color:${S['switch.tv']?.on ? '#34d399' : '#f87171'};">
+            ${S['switch.tv']?.on ? '🟢 เปิดอยู่ (ON)' : '🔴 ปิดอยู่ (OFF)'}
           </span>
         </div>
 
@@ -869,9 +973,17 @@ function vRemote() {
 
       <!-- Fan Minimal Controls -->
       <div id="irFanView" class="${irDeviceType !== 'fan' ? 'hide' : ''}">
+        <!-- Live Fan Power State Badge & Toggle Feedback -->
+        <div id="fanPowerBadge" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:12px; margin-bottom:12px; border:1px solid var(--border-glass);">
+          <span style="font-size:0.8rem; color:#cbd5e1; font-weight:600;">สถานะพัดลม (Fan State):</span>
+          <span id="fanStateText" style="font-size:0.8rem; font-weight:700; color:${(S['fan.bed']?.on || S['fan.living']?.on) ? '#fbbf24' : '#f87171'};">
+            ${(S['fan.bed']?.on || S['fan.living']?.on) ? `🟢 เปิดอยู่ (แรงลม ${S['fan.bed']?.spd || S['fan.living']?.spd || 1})` : '🔴 ปิดอยู่ (OFF)'}
+          </span>
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
           <button class="ir-cmd-btn" data-ircmd="power" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: 0; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🔴 Power</button>
-          <button class="ir-cmd-btn" data-ircmd="speed" style="background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid var(--accent-amber); padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🌀 Speed</button>
+          <button class="ir-cmd-btn" data-ircmd="speed" style="background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid var(--accent-amber); padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer;">🌀 Speed (+)</button>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <button class="ir-cmd-btn" data-ircmd="swing" style="background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--border-glass); padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer;">🔄 Swing</button>
@@ -1056,7 +1168,12 @@ function getIRBrandDropdownOptions(type) {
 
 function triggerIRSignal(cmdType, hexCodeVal = null) {
   const activeBrand = selectedBrands[irDeviceType] || 'samsung';
-  const hexCode = hexCodeVal || IR_CODES[irDeviceType]?.[activeBrand]?.[cmdType] || IR_CODES[irDeviceType]?.samsung?.[cmdType] || '0x20DF10EF';
+  let hexCode = hexCodeVal;
+  if (!hexCode) {
+    hexCode = IR_CODES[irDeviceType]?.[activeBrand]?.[cmdType] || 
+              IR_CODES[irDeviceType]?.samsung?.[cmdType] || 
+              generateFallbackHex(irDeviceType, activeBrand, cmdType);
+  }
 
   // 1. Tactile Vibration Feedback
   if (navigator.vibrate) navigator.vibrate([25, 10, 25]);
@@ -1069,12 +1186,24 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
   }
 
   // 3. Built-in Phone Hardware IR Blaster (Honor 200 / Xiaomi / Poco / Huawei / Samsung)
-  const isPhoneIrFired = transmitBuiltInPhoneIR(hexCode, 38000);
+  transmitBuiltInPhoneIR(hexCode, 38000);
 
   // 4. Web Audio 38kHz Carrier Signal Modulator
   transmitWebAudioIR(hexCode);
 
-  // 5. MQTT IR Transmit Payload for ESP32 / Arduino IR Blasters in the house
+  // 5. Local Hub Server API Call
+  try {
+    fetch('/api/ir/transmit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device: irDeviceType, brand: activeBrand, command: cmdType, hexCode })
+    }).catch(() => {});
+  } catch (e) {}
+
+  // 6. Local Bus Broadcast for instant multi-window / Receiver view sync
+  broadcastLocalCommand({ cmd: `IR: ${activeBrand.toUpperCase()} ${cmdType.toUpperCase()}`, at: Date.now() });
+
+  // 7. MQTT IR Transmit Payload for ESP32 / Arduino IR Blasters in the house
   if (mqttClient && mqttClient.connected) {
     const irPayload = {
       type: 'IR_TRANSMIT',
@@ -1087,18 +1216,55 @@ function triggerIRSignal(cmdType, hexCodeVal = null) {
     mqttClient.publish(mqttTopic, JSON.stringify(irPayload));
   }
 
-  // 6. Update Power State Tracking & Badge Text
-  if (cmdType === 'power' && S['tv']) {
-    S['tv'].on = !S['tv'].on;
-    saveState();
-    const tvStateText = document.getElementById('tvStateText');
-    if (tvStateText) {
-      tvStateText.textContent = S['tv'].on ? '🟢 เปิดอยู่ (ON)' : '🔴 ปิดอยู่ (OFF)';
-      tvStateText.style.color = S['tv'].on ? '#34d399' : '#f87171';
+  // 8. Update Power State Tracking & Badge Text
+  if (irDeviceType === 'tv' && (cmdType === 'power' || cmdType === 'ok')) {
+    if (S['switch.tv']) {
+      api.toggle('switch.tv');
+      const tvStateText = document.getElementById('tvStateText');
+      if (tvStateText) {
+        tvStateText.textContent = S['switch.tv'].on ? '🟢 เปิดอยู่ (ON)' : '🔴 ปิดอยู่ (OFF)';
+        tvStateText.style.color = S['switch.tv'].on ? '#34d399' : '#f87171';
+      }
     }
+  } else if (irDeviceType === 'fan') {
+    const targetFans = DEVICES.filter(d => d.type === 'fan');
+    if (cmdType === 'power') {
+      const isAnyOn = targetFans.some(d => S[d.id] && S[d.id].on);
+      const nextState = !isAnyOn;
+      targetFans.forEach(d => {
+        if (S[d.id]) api.set(d.id, { on: nextState, spd: nextState ? (S[d.id].spd || 1) : 1 });
+      });
+      const fanStateText = document.getElementById('fanStateText');
+      if (fanStateText) {
+        fanStateText.textContent = nextState ? `🟢 เปิดอยู่ (แรงลม ${S['fan.bed']?.spd || S['fan.living']?.spd || 1})` : '🔴 ปิดอยู่ (OFF)';
+        fanStateText.style.color = nextState ? '#fbbf24' : '#f87171';
+      }
+      toast(`🌀 พัดลม: ${nextState ? 'เปิดอยู่ (ON)' : 'ปิดอยู่ (OFF)'}`);
+    } else if (cmdType === 'speed') {
+      targetFans.forEach(d => {
+        if (S[d.id]) {
+          const cur = S[d.id].spd || 1;
+          const nxt = cur >= 3 ? 1 : cur + 1;
+          api.set(d.id, { on: true, spd: nxt });
+        }
+      });
+      const fanStateText = document.getElementById('fanStateText');
+      const curSpd = S['fan.bed']?.spd || S['fan.living']?.spd || 2;
+      if (fanStateText) {
+        fanStateText.textContent = `🟢 เปิดอยู่ (แรงลม ${curSpd})`;
+        fanStateText.style.color = '#fbbf24';
+      }
+      toast(`🌀 ปรับแรงลมพัดลม: ระดับ ${curSpd}`);
+    } else if (cmdType === 'swing') {
+      toast(`🔄 ส่ายพัดลม (Swing)`);
+    } else if (cmdType === 'timer') {
+      toast(`⏱️ ตั้งเวลาปิดพัดลมอัตโนมัติ (Timer)`);
+    }
+  } else if (irDeviceType === 'ac' && cmdType === 'power') {
+    if (S['climate.living']) api.toggle('climate.living');
   }
 
-  // 7. Update Status Feedback Text
+  // 9. Update Status Feedback Text
   const statusEl = document.getElementById('irStatusText');
   if (statusEl) {
     statusEl.textContent = `📡 ยิงสัญญาณ IR [${activeBrand.toUpperCase()} ${cmdType.toUpperCase()}]: ${hexCode}`;
@@ -1140,7 +1306,8 @@ function bindRemoteEvents() {
 
   // IR Command Buttons Click Event Handler
   document.querySelectorAll('.ir-cmd-btn').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = (e) => {
+      if (e) e.stopPropagation();
       const cmdType = btn.dataset.ircmd;
       if (cmdType) triggerIRSignal(cmdType);
     };
@@ -1241,23 +1408,111 @@ function bindRemoteEvents() {
   const btnBLE = document.getElementById('btnBLE');
   if (btnBLE) btnBLE.onclick = connectUART;
 
-  document.querySelectorAll('.dpad-btn, .k').forEach(btn => {
-    btn.onclick = () => {
+  // App Mode Remote Control Action Buttons & D-Pad Trackpad Handler
+  document.querySelectorAll('.dpad-dir-btn, .dpad-center-btn, .dpad-btn, .k').forEach(btn => {
+    btn.onclick = (e) => {
+      if (e) e.stopPropagation();
       const cmd = btn.dataset.cmd;
       if (!cmd) return;
       if (navigator.vibrate) navigator.vibrate(35);
+
+      if (cmd === 'UP') {
+        if (S['climate.living'] && S['climate.living'].on && S['climate.living'].temp < 30) {
+          api.set('climate.living', { temp: S['climate.living'].temp + 1 });
+          toast(`❄️ ปรับอุณหภูมิแอร์: ${S['climate.living'].temp}°C`);
+        } else if (S['light.living'] && S['light.living'].on) {
+          const newBri = Math.min(100, S['light.living'].bri + 10);
+          api.set('light.living', { bri: newBri });
+          toast(`💡 เพิ่มความสว่างไฟ: ${newBri}%`);
+        } else {
+          toast(`▲ เลื่อนขึ้น (UP)`);
+        }
+      } else if (cmd === 'DOWN') {
+        if (S['climate.living'] && S['climate.living'].on && S['climate.living'].temp > 16) {
+          api.set('climate.living', { temp: S['climate.living'].temp - 1 });
+          toast(`❄️ ปรับอุณหภูมิแอร์: ${S['climate.living'].temp}°C`);
+        } else if (S['light.living'] && S['light.living'].on) {
+          const newBri = Math.max(10, S['light.living'].bri - 10);
+          api.set('light.living', { bri: newBri });
+          toast(`💡 ลดความสว่างไฟ: ${newBri}%`);
+        } else {
+          toast(`▼ เลื่อนลง (DOWN)`);
+        }
+      } else if (cmd === 'LEFT') {
+        if (S['cover.curtain']) {
+          const newPos = Math.max(0, S['cover.curtain'].pos - 25);
+          api.set('cover.curtain', { pos: newPos });
+          toast(`🪟 ปิดม่าน: ${newPos}%`);
+        }
+      } else if (cmd === 'RIGHT') {
+        if (S['cover.curtain']) {
+          const newPos = Math.min(100, S['cover.curtain'].pos + 25);
+          api.set('cover.curtain', { pos: newPos });
+          toast(`🪟 เปิดม่าน: ${newPos}%`);
+        }
+      } else if (cmd === 'OK' || cmd === 'TV_TOGGLE') {
+        if (S['switch.tv']) {
+          api.toggle('switch.tv');
+          toast(`📺 ทีวี: ${S['switch.tv'].on ? 'เปิดอยู่ (ON)' : 'ปิดอยู่ (OFF)'}`);
+        }
+      } else if (cmd === 'LIGHT_ON') {
+        api.set('light.living', { on: true });
+        if (S['light.bed']) api.set('light.bed', { on: true });
+        toast(`💡 เปิดไฟทั้งหมด`);
+      } else if (cmd === 'LIGHT_OFF') {
+        api.set('light.living', { on: false });
+        if (S['light.bed']) api.set('light.bed', { on: false });
+        toast(`🌙 ปิดไฟทั้งหมด`);
+      } else if (cmd === 'FAN_TOGGLE') {
+        const fanDevices = DEVICES.filter(d => d.type === 'fan');
+        const isAnyOn = fanDevices.some(d => S[d.id] && S[d.id].on);
+        const nextState = !isAnyOn;
+        fanDevices.forEach(d => {
+          if (S[d.id]) api.set(d.id, { on: nextState, spd: nextState ? (S[d.id].spd || 1) : 1 });
+        });
+        toast(`🌀 พัดลม: ${nextState ? 'เปิดอยู่ (ON)' : 'ปิดอยู่ (OFF)'}`);
+      } else if (cmd === 'FAN_UP') {
+        const fanDevices = DEVICES.filter(d => d.type === 'fan');
+        fanDevices.forEach(d => {
+          if (S[d.id]) {
+            const currentSpd = S[d.id].spd || 1;
+            const newSpd = currentSpd >= 3 ? 1 : currentSpd + 1;
+            api.set(d.id, { on: true, spd: newSpd });
+          }
+        });
+        const currentSpd = S['fan.bed']?.spd || S['fan.living']?.spd || 2;
+        toast(`🌀 เพิ่มแรงลมพัดลม: ระดับ ${currentSpd}`);
+      } else if (cmd === 'FAN_DOWN') {
+        const fanDevices = DEVICES.filter(d => d.type === 'fan');
+        const currentSpd = S['fan.bed']?.spd || 1;
+        if (currentSpd <= 1) {
+          fanDevices.forEach(d => {
+            if (S[d.id]) api.set(d.id, { on: false, spd: 1 });
+          });
+          toast(`🌀 ปิดพัดลม`);
+        } else {
+          fanDevices.forEach(d => {
+            if (S[d.id]) api.set(d.id, { on: true, spd: currentSpd - 1 });
+          });
+          toast(`🌀 ลดแรงลมพัดลม: ระดับ ${currentSpd - 1}`);
+        }
+      } else if (cmd === 'AC_ON') {
+        if (S['climate.living']) api.set('climate.living', { on: true, temp: 24 });
+        toast(`❄️ เปิดแอร์ 24°C`);
+      } else if (cmd === 'ALL_OFF') {
+        if (SCENES[0]) SCENES[0].f(S);
+        saveState();
+        toast(`⛔ ปิดอุปกรณ์ทั้งหมดในบ้าน`);
+      }
+
       const payload = { cmd, at: Date.now() };
+      broadcastLocalCommand(payload);
 
       if (mqttClient && mqttClient.connected) {
         mqttClient.publish(mqttTopic, JSON.stringify(payload));
       }
 
       sendBLE(cmd);
-
-      if (cmd === 'LIGHT_ON') api.set('light.living', { on: true });
-      if (cmd === 'LIGHT_OFF') api.set('light.living', { on: false });
-      if (cmd === 'AC_ON') api.set('climate.living', { on: true });
-      if (cmd === 'ALL_OFF') SCENES[0].f(S);
 
       const lastSentEl = document.getElementById('lastSent');
       if (lastSentEl) {
@@ -1741,235 +1996,321 @@ const VOICE_CMD = [
   { k: ["ล็อกประตู", "ล็อคประตู"], a: () => api.set("lock.front", { on: true }) }
 ];
 
-function processVoiceText(t) {
-  const hit = VOICE_CMD.find(c => c.k.some(k => t.includes(k)));
-  if (hit) {
-    hit.a();
-    saveState();
-    logEvent("🎤 สั่งด้วยเสียง: " + t, "ok");
-    toast("🎤 " + t);
-    render();
-  } else {
-    fetch('/api/voice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: t })
-    }).then(r => r.json()).then(data => {
-      logEvent("🎤 คำสั่ง: " + data.message, data.success ? "ok" : "warn");
-      toast(data.message);
-      render();
-    }).catch(() => {
-      logEvent("🎤 ไม่เข้าใจคำสั่ง: " + t);
-      toast("ไม่เข้าใจคำสั่ง: " + t);
-    });
-  }
-}
+let voiceEngine = {
+  active: false,
+  rec: null,
+  speakingTTS: false,
+  reconnectTimer: null
+};
 
-function initVoice() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) {
-    toast("เบราว์เซอร์นี้ไม่รองรับระบบแยกแยะเสียงพูด พิมพ์แทนได้ครับ");
-    return;
-  }
-  const r = new SR();
-  r.lang = "th-TH";
-  r.continuous = true;
-  r.interimResults = false;
-  r.onresult = e => {
-    const t = e.results[e.results.length - 1][0].transcript.trim();
-    processVoiceText(t);
-  };
-  r.onend = () => {
-    if (window._sr) try { r.start(); } catch (e) {}
-  };
-  try {
-    r.start();
-    window._sr = r;
-    toast("🎤 เปิดการรับคำสั่งเสียงภาษาไทยแล้ว");
-  } catch (e) {}
-}
-
-function stopVoice() {
-  if (window._sr) {
-    const r = window._sr;
-    window._sr = null;
-    try { r.stop(); } catch (e) {}
-    toast("ปิดการสั่งงานด้วยเสียง");
-  }
-}
-
-/* ══════════ PWA Setup ══════════ */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js").catch(() => {});
-}
-
-let deferredPrompt = null;
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const b = document.getElementById("install");
-  if (b) {
-    b.style.display = "block";
-    b.onclick = async () => {
-      b.style.display = "none";
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    };
-  }
-});
-
-/* ══════════ Modal Permission Events ══════════ */
-const goBtn = document.getElementById("go");
-if (goBtn) {
-  goBtn.onclick = async () => {
-    if (typeof DeviceMotionEvent !== "undefined" && DeviceMotionEvent.requestPermission) {
-      try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
-    }
-    if (window.Notification) {
-      try { await Notification.requestPermission(); } catch (e) {}
-    }
-    initMotion();
-    await initCam();
-    initGeo();
-    initBatt();
-    if (navigator.wakeLock) {
-      try { await navigator.wakeLock.request("screen"); } catch (e) {}
-    }
-    PHONE.active = true;
-    document.getElementById("perm")?.remove();
-    logEvent("เชื่อมต่อเซ็นเซอร์มือถือสำเร็จ", "ok");
-    toast("📱 ใช้เซ็นเซอร์จริงจากมือถือแล้ว");
-    render();
-  };
-}
-
-const skipBtn = document.getElementById("skip");
-if (skipBtn) {
-  skipBtn.onclick = () => {
-    document.getElementById("perm")?.remove();
-    render();
-  };
-}
-
-setInterval(() => {
-  tickSensors();
-  runRules();
-  S._kwh[6].v = +(S._kwh[6].v + powerNow() / 1000 * (2 / 3600)).toFixed(4);
-  saveState();
-  if (!drag && V !== "remote" && document.visibilityState === "visible") render();
-}, 2000);
-
-setInterval(() => {
-  if (V === "cam" && document.visibilityState === "visible") drawCams();
-}, 120);
-
-tickSensors();
-render();
-logEvent("ระบบเริ่มทำงาน", "ok");
-
-/* ══════════ Ultimate Feature 1: One-Tap Smart Scenes ══════════ */
-function triggerScene(sceneId) {
-  if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
-  
-  if (sceneId === 'movie') {
-    if (S['light.living']) { S['light.living'].on = true; S['light.living'].bri = 25; }
-    if (S['curtain.living']) S['curtain.living'].on = false;
-    if (S['ac.living']) { S['ac.living'].on = true; S['ac.living'].temp = 22; }
-    if (S['tv']) S['tv'].on = true;
-    toast("🎬 เปิดโหมดดูหนังเรียบร้อยแล้ว (ปิดม่าน + แอร์ 22°C + แสงไฟ 25%)");
-    speakThaiText("เปิดโหมดดูหนังเรียบร้อยแล้วค่ะ");
-  } else if (sceneId === 'sleep') {
-    Object.keys(S).forEach(id => {
-      if (id.startsWith('light.') || id.startsWith('fan.') || id.startsWith('outlet.')) {
-        S[id].on = false;
-      }
-    });
-    if (S['ac.bed']) { S['ac.bed'].on = true; S['ac.bed'].temp = 25; }
-    toast("🌙 เปิดโหมดเข้านอนเรียบร้อยแล้ว (ปิดไฟทั้งบ้าน + แอร์ 25°C)");
-    speakThaiText("เปิดโหมดเข้านอน ปิดไฟทั้งบ้านแล้วค่ะ");
-  } else if (sceneId === 'away') {
-    Object.keys(S).forEach(id => { if (S[id].on !== undefined) S[id].on = false; });
-    SEN.motion = 1;
-    toast("🚪 เปิดโหมดออกจากบ้าน (ปิดอุปกรณ์ทั้งบ้าน + เปิดกล้อง AI กันบุกรุก)");
-    speakThaiText("เปิดโหมดออกจากบ้าน ป้องกันการบุกรุกแล้วค่ะ");
-  } else if (sceneId === 'farm_water') {
-    if (S['light.living']) S['light.living'].on = true;
-    if (S['fan.living']) S['fan.living'].on = true;
-    toast("🌾 เปิดระบบรดน้ำต้นไม้สปริงเกอร์ & พัดลมโรงเรือน 5 นาที");
-    speakThaiText("เปิดระบบรดน้ำแปลงผักอัตโนมัติแล้วค่ะ");
-  }
-  
-  saveState();
-  render(true);
-}
-
-/* ══════════ Ultimate Feature 2: Thai Voice Assistant Engine ══════════ */
-function speakThaiText(text) {
+function speakThaiText(text, callback = null) {
   if ('speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();
+      voiceEngine.speakingTTS = true;
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'th-TH';
       u.rate = 1.0;
+      u.onend = () => {
+        voiceEngine.speakingTTS = false;
+        if (callback) callback();
+      };
+      u.onerror = () => {
+        voiceEngine.speakingTTS = false;
+      };
       window.speechSynthesis.speak(u);
-    } catch (e) {}
+    } catch (e) {
+      voiceEngine.speakingTTS = false;
+    }
   }
 }
 
-function startThaiVoiceAssistant() {
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRec) {
-    alert("เบราว์เซอร์นี้ยังไม่รองรับระบบสั่งงานด้วยเสียง กรุณาใช้ Google Chrome บน Android/PC ครับ");
+function processVoiceText(rawText) {
+  const t = (rawText || '').toLowerCase().trim();
+  if (!t) return;
+
+  logEvent("🎤 คำสั่งเสียง: " + t, "ok");
+  toast("🗣️ " + t);
+
+  // 1. All lights off / All lights on
+  if (t.includes("ปิดไฟทั้งหมด") || t.includes("ปิดไฟทุกดวง") || t.includes("ดับไฟ")) {
+    api.set("light.living", { on: false });
+    api.set("light.bed", { on: false });
+    api.set("light.kitchen", { on: false });
+    api.set("light.porch", { on: false });
+    toast("🌙 ปิดไฟทุกดวงเรียบร้อยแล้ว");
+    speakThaiText("ปิดไฟทุกดวงเรียบร้อยแล้วค่ะ");
     return;
   }
 
-  const rec = new SpeechRec();
-  rec.lang = 'th-TH';
-  rec.continuous = false;
-  rec.interimResults = false;
+  if (t.includes("เปิดไฟทั้งหมด") || t.includes("เปิดไฟทุกดวง")) {
+    api.set("light.living", { on: true });
+    api.set("light.bed", { on: true });
+    api.set("light.kitchen", { on: true });
+    api.set("light.porch", { on: true });
+    toast("💡 เปิดไฟทุกดวงเรียบร้อยแล้ว");
+    speakThaiText("เปิดไฟทุกดวงเรียบร้อยแล้วค่ะ");
+    return;
+  }
 
-  toast("🎙️ กำลังฟังเสียง... พูดคำสั่งภาษาไทยได้เลยครับ");
-  speakThaiText("กำลังฟังเสียงค่ะ พูดคำสั่งได้เลยค่ะ");
+  // 2. Specific room light control
+  if (t.includes("ไฟห้องนั่งเล่น") || t.includes("ไฟหลัก")) {
+    const turnOn = t.includes("เปิด") || t.includes("ติด");
+    api.set("light.living", { on: turnOn });
+    toast(`💡 ${turnOn ? "เปิด" : "ปิด"}ไฟห้องนั่งเล่นแล้ว`);
+    speakThaiText(`${turnOn ? "เปิด" : "ปิด"}ไฟห้องนั่งเล่นแล้วค่ะ`);
+    return;
+  }
 
-  rec.onresult = (e) => {
-    const text = e.results[0][0].transcript.toLowerCase();
-    toast(`🗣️ คุณพูดว่า: "${text}"`);
+  if (t.includes("ไฟห้องนอน") || t.includes("ไฟหัวเตียง")) {
+    const turnOn = t.includes("เปิด") || t.includes("ติด");
+    api.set("light.bed", { on: turnOn });
+    toast(`💡 ${turnOn ? "เปิด" : "ปิด"}ไฟห้องนอนแล้ว`);
+    speakThaiText(`${turnOn ? "เปิด" : "ปิด"}ไฟห้องนอนแล้วค่ะ`);
+    return;
+  }
 
-    if (text.includes("เปิดไฟ")) {
-      Object.keys(S).forEach(id => { if (id.startsWith('light.')) S[id].on = true; });
-      toast("💡 เปิดไฟทุกดวงเรียบร้อยแล้ว");
-      speakThaiText("เปิดไฟทุกดวงแล้วค่ะ");
-    } else if (text.includes("ปิดไฟ")) {
-      Object.keys(S).forEach(id => { if (id.startsWith('light.')) S[id].on = false; });
-      toast("🌙 ปิดไฟทุกดวงเรียบร้อยแล้ว");
-      speakThaiText("ปิดไฟทุกดวงแล้วค่ะ");
-    } else if (text.includes("เปิดแอร์")) {
-      if (S['ac.living']) S['ac.living'].on = true;
-      if (S['ac.bed']) S['ac.bed'].on = true;
-      toast("❄️ เปิดแอร์เรียบร้อยแล้ว");
-      speakThaiText("เปิดแอร์เรียบร้อยแล้วค่ะ");
-    } else if (text.includes("ปิดทั้งหมด") || text.includes("ปิดบ้าน")) {
-      triggerScene('away');
-    } else if (text.includes("ดูหนัง")) {
-      triggerScene('movie');
-    } else if (text.includes("เข้านอน")) {
-      triggerScene('sleep');
-    } else if (text.includes("รดน้ำ")) {
-      triggerScene('farm_water');
-    } else {
-      toast(`⚠️ ไม่พบคำสั่ง "${text}" ลองพูด "เปิดไฟ" หรือ "โหมดดูหนัง"`);
-      speakThaiText("ขออภัยค่ะ ลองพูดเปิดไฟ หรือโหมดดูหนังนะคะ");
+  if (t.includes("ไฟครัว")) {
+    const turnOn = t.includes("เปิด") || t.includes("ติด");
+    api.set("light.kitchen", { on: turnOn });
+    toast(`💡 ${turnOn ? "เปิด" : "ปิด"}ไฟครัวแล้ว`);
+    speakThaiText(`${turnOn ? "เปิด" : "ปิด"}ไฟครัวแล้วค่ะ`);
+    return;
+  }
+
+  if (t.includes("ไฟหน้าบ้าน")) {
+    const turnOn = t.includes("เปิด") || t.includes("ติด");
+    api.set("light.porch", { on: turnOn });
+    toast(`💡 ${turnOn ? "เปิด" : "ปิด"}ไฟหน้าบ้านแล้ว`);
+    speakThaiText(`${turnOn ? "เปิด" : "ปิด"}ไฟหน้าบ้านแล้วค่ะ`);
+    return;
+  }
+
+  // Generic light toggle fallback
+  if (t.includes("เปิดไฟ")) {
+    api.set("light.living", { on: true });
+    toast("💡 เปิดไฟห้องนั่งเล่นแล้ว");
+    speakThaiText("เปิดไฟให้แล้วค่ะ");
+    return;
+  }
+
+  if (t.includes("ปิดไฟ")) {
+    api.set("light.living", { on: false });
+    toast("🌙 ปิดไฟห้องนั่งเล่นแล้ว");
+    speakThaiText("ปิดไฟให้แล้วค่ะ");
+    return;
+  }
+
+  // 3. Climate / Air Conditioner Control
+  if (t.includes("แอร์") || t.includes("ปรับอากาศ")) {
+    const numMatch = t.match(/\d+/);
+    if (numMatch) {
+      const targetTemp = Math.min(30, Math.max(16, parseInt(numMatch[0])));
+      api.set("climate.living", { on: true, temp: targetTemp });
+      toast(`❄️ ตั้งอุณหภูมิแอร์: ${targetTemp}°C`);
+      speakThaiText(`ปรับอุณหภูมิแอร์เป็น ${targetTemp} องศาแล้วค่ะ`);
+      return;
     }
-    saveState();
-    render(true);
+    if (t.includes("เปิด")) {
+      api.set("climate.living", { on: true });
+      toast("❄️ เปิดแอร์เรียบร้อยแล้ว");
+      speakThaiText("เปิดแอร์แล้วค่ะ");
+      return;
+    }
+    if (t.includes("ปิด")) {
+      api.set("climate.living", { on: false });
+      toast("❄️ ปิดแอร์เรียบร้อยแล้ว");
+      speakThaiText("ปิดแอร์แล้วค่ะ");
+      return;
+    }
+  }
+
+  // 4. Fan Control
+  if (t.includes("พัดลม")) {
+    if (t.includes("เปิด") || t.includes("เพิ่ม")) {
+      const currentSpd = (S["fan.bed"] && S["fan.bed"].spd) || 1;
+      const newSpd = currentSpd >= 3 ? 1 : currentSpd + 1;
+      api.set("fan.bed", { on: true, spd: newSpd });
+      toast(`🌀 เปิดพัดลมระดับ ${newSpd}`);
+      speakThaiText(`เปิดพัดลมระดับ ${newSpd} แล้วค่ะ`);
+      return;
+    }
+    if (t.includes("ปิด") || t.includes("หยุด")) {
+      api.set("fan.bed", { on: false });
+      toast("🌀 ปิดพัดลมแล้ว");
+      speakThaiText("ปิดพัดลมแล้วค่ะ");
+      return;
+    }
+  }
+
+  // 5. TV Control
+  if (t.includes("ทีวี") || t.includes("โทรทัศน์")) {
+    if (t.includes("เปิด")) {
+      api.set("switch.tv", { on: true });
+      toast("📺 เปิดทีวีแล้ว");
+      speakThaiText("เปิดทีวีแล้วค่ะ");
+      return;
+    }
+    if (t.includes("ปิด")) {
+      api.set("switch.tv", { on: false });
+      toast("📺 ปิดทีวีแล้ว");
+      speakThaiText("ปิดทีวีแล้วค่ะ");
+      return;
+    }
+  }
+
+  // 6. Electric Curtain Control
+  if (t.includes("ม่าน")) {
+    if (t.includes("เปิด")) {
+      api.set("cover.curtain", { pos: 100 });
+      toast("🪟 เปิดม่านเรียบร้อยแล้ว");
+      speakThaiText("เปิดม่านให้แล้วค่ะ");
+      return;
+    }
+    if (t.includes("ปิด")) {
+      api.set("cover.curtain", { pos: 0 });
+      toast("🪟 ปิดม่านเรียบร้อยแล้ว");
+      speakThaiText("ปิดม่านให้แล้วค่ะ");
+      return;
+    }
+  }
+
+  // 7. Smart Door Lock
+  if (t.includes("ล็อกประตู") || t.includes("ล็อคประตู")) {
+    api.set("lock.front", { on: true });
+    toast("🔒 ล็อกประตูหน้าบ้านแล้ว");
+    speakThaiText("ล็อกประตูหน้าบ้านแล้วค่ะ");
+    return;
+  }
+  if (t.includes("ปลดล็อกประตู") || t.includes("เปิดประตู")) {
+    api.set("lock.front", { on: false });
+    toast("🔓 ปลดล็อกประตูหน้าบ้านแล้ว");
+    speakThaiText("ปลดล็อกประตูหน้าบ้านแล้วค่ะ");
+    return;
+  }
+
+  // 8. One-Tap Scenes
+  if (t.includes("ดูหนัง")) { triggerScene('movie'); return; }
+  if (t.includes("เข้านอน") || t.includes("ราตรีสวัสดิ์")) { triggerScene('sleep'); return; }
+  if (t.includes("ออกจากบ้าน") || t.includes("ปิดบ้าน") || t.includes("ปิดทั้งหมด")) { triggerScene('away'); return; }
+  if (t.includes("รดน้ำ")) { triggerScene('farm_water'); return; }
+
+  // 9. Server Offline Voice Parsing API Fallback
+  fetch('/api/voice', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: t })
+  }).then(r => r.json()).then(data => {
+    logEvent("🎤 คำสั่ง: " + data.reply, data.success ? "ok" : "warn");
+    toast(data.reply);
+    speakThaiText(data.reply);
+    render();
+  }).catch(() => {
+    logEvent("🎤 ไม่เข้าใจคำสั่ง: " + t);
+    toast("ไม่เข้าใจคำสั่ง: " + t);
+    speakThaiText("ขออภัยค่ะ ไม่เข้าใจคำสั่ง");
+  });
+}
+
+function initVoice(silent = false) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    if (!silent) {
+      toast("เบราว์เซอร์นี้ไม่รองรับระบบสั่งงานด้วยเสียง พิมพ์แทนได้ครับ");
+      alert("เบราว์เซอร์นี้ไม่รองรับ Web Speech API กรุณาใช้ Google Chrome บน Android หรือ PC ครับ");
+    }
+    return;
+  }
+
+  if (voiceEngine.active && !silent) {
+    stopVoice();
+    return;
+  }
+
+  voiceEngine.active = true;
+  localStorage.setItem('voice_auto_active', 'true');
+  startRecognitionLoop();
+  if (!silent) {
+    toast("🎙️ เปิดการรับคำสั่งเสียงภาษาไทยแบบ Always-On (ทำงานตลอดเวลา)");
+    speakThaiText("เปิดระบบสั่งงานด้วยเสียงแล้วค่ะ");
+  }
+}
+
+function startRecognitionLoop() {
+  if (!voiceEngine.active) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+
+  if (voiceEngine.rec) {
+    try { voiceEngine.rec.abort(); } catch (e) {}
+  }
+
+  const r = new SR();
+  r.lang = "th-TH";
+  r.continuous = false;
+  r.interimResults = false;
+
+  r.onresult = (e) => {
+    if (voiceEngine.speakingTTS) return;
+    const t = e.results[0][0].transcript.trim();
+    if (t) {
+      processVoiceText(t);
+    }
   };
 
-  rec.onerror = () => {
-    toast("❌ สัญญาณเสียงไม่ชัดเจน กรุณาลองพูดใหม่อีกครั้ง");
+  r.onerror = (e) => {
+    console.log('Voice Recognition Error:', e.error);
   };
 
-  try { rec.start(); } catch (err) {}
+  r.onend = () => {
+    if (voiceEngine.active) {
+      clearTimeout(voiceEngine.reconnectTimer);
+      voiceEngine.reconnectTimer = setTimeout(() => {
+        if (voiceEngine.active && !voiceEngine.speakingTTS) {
+          startRecognitionLoop();
+        } else if (voiceEngine.active) {
+          const checkTTS = setInterval(() => {
+            if (!voiceEngine.speakingTTS) {
+              clearInterval(checkTTS);
+              startRecognitionLoop();
+            }
+          }, 300);
+        }
+      }, 350);
+    }
+  };
+
+  try {
+    r.start();
+    voiceEngine.rec = r;
+    window._sr = r;
+  } catch (e) {
+    clearTimeout(voiceEngine.reconnectTimer);
+    voiceEngine.reconnectTimer = setTimeout(startRecognitionLoop, 1000);
+  }
+}
+
+function stopVoice() {
+  voiceEngine.active = false;
+  localStorage.setItem('voice_auto_active', 'false');
+  clearTimeout(voiceEngine.reconnectTimer);
+  if (voiceEngine.rec) {
+    try { voiceEngine.rec.stop(); } catch (e) {}
+    voiceEngine.rec = null;
+  }
+  window._sr = null;
+  toast("🔴 ปิดระบบสั่งงานด้วยเสียงเรียบร้อยแล้ว");
+}
+
+function startThaiVoiceAssistant() {
+  initVoice();
+}
+
+// Auto-boot voice engine on page load if enabled (defaults to true)
+if (localStorage.getItem('voice_auto_active') !== 'false') {
+  setTimeout(() => {
+    if (!voiceEngine.active) initVoice(true);
+  }, 1000);
 }
 
 /* ══════════ Ultimate Feature 3: LINE Notify Alert Engine ══════════ */

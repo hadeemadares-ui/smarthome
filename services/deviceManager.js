@@ -86,6 +86,32 @@ class DeviceManager {
     return null;
   }
 
+  handleIRCommand(deviceType, brand, command, hexCode) {
+    let dev = null;
+    if (deviceType === 'tv') {
+      dev = this.getById('tv-living');
+      if (dev && command === 'power') {
+        dev.state = !dev.state;
+      }
+    } else if (deviceType === 'ac') {
+      dev = this.getById('ac-master');
+      if (dev) {
+        if (command === 'power') dev.state = !dev.state;
+        else if (command === 'cool') dev.state = true;
+      }
+    } else if (deviceType === 'fan') {
+      dev = this.getById('fan-balcony');
+      if (dev && (command === 'power' || command === 'speed')) {
+        dev.state = command === 'power' ? !dev.state : true;
+      }
+    }
+    if (dev) {
+      this.save();
+      this.notify({ type: 'DEVICE_UPDATED', device: dev, energy: this.getEnergySummary() });
+    }
+    return dev;
+  }
+
   getEnergySummary() {
     const currentWatts = this.devices
       .filter(d => d.state)

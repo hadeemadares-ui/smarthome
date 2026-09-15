@@ -1,17 +1,7 @@
-const CACHE_NAME = 'smarthome-v9999-purge';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './styles.css?v=9999',
-  './app.js?v=9999',
-  './manifest.json'
-];
+const CACHE_NAME = 'smarthome-v' + Date.now();
 
 self.addEventListener('install', event => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE))
-  );
 });
 
 self.addEventListener('activate', event => {
@@ -24,6 +14,6 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.url.includes('/api/')) return;
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request, { cache: 'reload' }).catch(() => caches.match(event.request))
   );
 });

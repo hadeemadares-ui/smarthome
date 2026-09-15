@@ -170,6 +170,38 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Hardware IR Signal Transmission & Broadcast API
+  if (pathname === '/api/ir/transmit' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body);
+        const { device, brand, command, hexCode } = payload;
+        
+        const updatedDevice = deviceManager.handleIRCommand(device, brand, command, hexCode);
+        
+        const eventData = {
+          type: 'IR_TRANSMITTED',
+          device,
+          brand,
+          command,
+          hexCode,
+          at: Date.now(),
+          updatedDevice
+        };
+        deviceManager.notify(eventData);
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=UTF-8' });
+        res.end(JSON.stringify({ success: true, event: eventData }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, message: 'Invalid payload' }));
+      }
+    });
+    return;
+  }
+
   // System Status API
   if (pathname === '/api/system' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -209,7 +241,12 @@ const server = http.createServer((req, res) => {
         res.end(`Server Error: ${err.code}`);
       }
     } else {
-      res.writeHead(200, { 'Content-Type': contentType });
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
       res.end(content, 'utf-8');
     }
   });
