@@ -9,7 +9,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>บ้านของฉัน · Smart Home Hub</title>
-  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260915_v3">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png?v=20260915_v3">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png?v=20260915_v3">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=20260915_v3">
+  <link rel="manifest" href="./manifest.json?v=20260915_v3">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
     if ('serviceWorker' in navigator) {
@@ -23,7 +27,7 @@
       });
     }
   </script>
-  <link rel="stylesheet" href="./styles.css?v=20260907_v2">
+  <link rel="stylesheet" href="./styles.css?v=20260915_v3">
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
@@ -31,11 +35,11 @@
   <!-- App Header -->
   <header class="app-header">
     <div class="brand-wrapper">
-      <div class="brand-avatar">
-        <i class="fa-solid fa-house-user"></i>
+      <div class="brand-avatar" id="brandAvatarEl" style="overflow:hidden; padding:2px; background:none; box-shadow:0 8px 24px rgba(79,70,229,0.4);">
+        <img src="./favicon.svg?v=20260915_v3" alt="Logo" id="brandLogoImg" style="width: 100%; height: 100%; object-fit: contain; border-radius: 14px;">
       </div>
       <div>
-        <div class="brand-greeting">บ้านของฉัน</div>
+        <div class="brand-greeting" id="brandGreetingText">บ้านของฉัน</div>
         <div class="brand-sub">
           <span class="status-dot"></span>
           <span id="clockHeader">100% Local Isolated</span>
@@ -89,6 +93,6 @@
   <!-- Toast Container -->
   <div id="toast"></div>
 
-  <script src="./app.js?v=20260907_v2"></script>
+  <script src="./app.js?v=20260915_v3"></script>
 </body>
 </html>

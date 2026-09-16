@@ -247,7 +247,64 @@ function runRules() {
 let lastRenderedView = '';
 
 /* ══════════ Views & UI Renderer ══════════ */
+function updateHeaderBrand() {
+  const brandLogoImg = document.getElementById("brandLogoImg");
+  if (brandLogoImg) {
+    const customLogo = localStorage.getItem("custom_brand_logo");
+    if (customLogo) {
+      if (brandLogoImg.src !== customLogo) brandLogoImg.src = customLogo;
+    } else {
+      brandLogoImg.src = "./favicon.svg?v=20260915_v3";
+    }
+  }
+  const brandGreetingText = document.getElementById("brandGreetingText");
+  if (brandGreetingText) {
+    const customName = localStorage.getItem("custom_home_name");
+    brandGreetingText.textContent = customName || "บ้านของฉัน";
+  }
+
+  const brandWrapper = document.querySelector('.brand-wrapper');
+  if (brandWrapper && !brandWrapper._bound) {
+    brandWrapper._bound = true;
+    brandWrapper.style.cursor = 'pointer';
+    brandWrapper.title = 'แตะเพื่อเปลี่ยนชื่อบ้านหรือรูปโลโก้ (ซิงค์ทุกเครื่อง)';
+    brandWrapper.onclick = () => {
+      const curName = localStorage.getItem("custom_home_name") || "บ้านของฉัน";
+      const curLogo = localStorage.getItem("custom_brand_logo") || "";
+      const newName = prompt("🏠 ตั้งชื่อบ้าน / ระบบอัจฉริยะของคุณ:", curName);
+      if (newName === null) return;
+
+      const newLogo = prompt("🖼️ URL รูปภาพโลโก้ใหม่ (ใส่ URL รูปภาพ หรือเว้นว่างเพื่อใช้โลโก้เริ่มต้น):", curLogo.startsWith('data:') ? '' : curLogo);
+      if (newLogo === null) return;
+
+      const finalName = newName.trim() || "บ้านของฉัน";
+      const finalLogo = newLogo.trim() ? newLogo.trim() : "./favicon.svg?v=" + Date.now();
+
+      localStorage.setItem("custom_home_name", finalName);
+      if (newLogo.trim()) {
+        localStorage.setItem("custom_brand_logo", finalLogo);
+      } else {
+        localStorage.removeItem("custom_brand_logo");
+      }
+
+      if (mqttClient && mqttClient.connected && mqttTopic) {
+        mqttClient.publish(mqttTopic, JSON.stringify({
+          type: 'BRAND_UPDATE',
+          name: finalName,
+          logo: finalLogo,
+          at: Date.now()
+        }));
+      }
+
+      toast(`✨ อัปเดตโลโก้และชื่อบ้านสำเร็จ (ซิงค์ทุกเครื่อง)`);
+      render(true);
+    };
+  }
+}
+
 function render(force = false) {
+  updateHeaderBrand();
+
   const clockHeader = document.getElementById("clockHeader");
   if (clockHeader) {
     clockHeader.textContent = PHONE.active ? "📱 เซ็นเซอร์มือถือจริง" : "🟢 100% Local Isolated";
@@ -1392,6 +1449,13 @@ function bindRemoteEvents() {
               Object.assign(S[id], props);
               saveState();
               render(false);
+            }
+
+            // Live bi-directional brand logo & name sync across all devices
+            if (data.type === 'BRAND_UPDATE') {
+              if (data.name) localStorage.setItem("custom_home_name", data.name);
+              if (data.logo) localStorage.setItem("custom_brand_logo", data.logo);
+              render(true);
             }
           } catch (e) {}
         });
