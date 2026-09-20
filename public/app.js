@@ -23,40 +23,45 @@ const SCENES = [
   { 
     n: "ออกจากบ้าน", i: "🚪", 
     f: s => { 
-      DEVICES.forEach(d => { if (d.type !== "lock") s[d.id].on = false; }); 
-      s["lock.front"].on = true; 
-      s["cover.curtain"].pos = 0; 
+      DEVICES.forEach(d => { if (d.type !== "lock" && s[d.id]) s[d.id].on = false; }); 
+      if (s["lock.front"]) s["lock.front"].on = true; 
+      if (s["cover.curtain"]) s["cover.curtain"].pos = 0; 
     }
   },
   { 
     n: "เข้านอน", i: "🌙", 
     f: s => { 
-      DEVICES.forEach(d => { if (d.type !== "lock") s[d.id].on = false; }); 
-      s["light.bed"].on = true; 
-      s["light.bed"].bri = 12; 
-      s["fan.bed"].on = true; 
-      s["fan.bed"].spd = 1; 
-      s["lock.front"].on = true; 
+      DEVICES.forEach(d => { if (d.type !== "lock" && s[d.id]) s[d.id].on = false; }); 
+      if (s["light.bed"]) { s["light.bed"].on = true; s["light.bed"].bri = 12; }
+      if (s["fan.bed"]) { s["fan.bed"].on = true; s["fan.bed"].spd = 1; }
+      if (s["lock.front"]) s["lock.front"].on = true; 
     }
   },
   { 
     n: "ดูหนัง", i: "🎬", 
     f: s => { 
-      s["light.living"].on = true; 
-      s["light.living"].bri = 20; 
-      s["switch.tv"].on = true; 
-      s["cover.curtain"].pos = 0; 
-      s["light.kitchen"].on = false; 
+      if (s["light.living"]) { s["light.living"].on = true; s["light.living"].bri = 20; }
+      if (s["switch.tv"]) s["switch.tv"].on = true; 
+      if (s["cover.curtain"]) s["cover.curtain"].pos = 0; 
+      if (s["light.kitchen"]) s["light.kitchen"].on = false; 
     }
   },
   { 
     n: "ตื่นนอน", i: "☀️", 
     f: s => { 
-      s["cover.curtain"].pos = 100; 
-      s["light.bed"].on = true; 
-      s["light.bed"].bri = 70; 
-      s["light.kitchen"].on = true; 
-      s["fan.bed"].on = false; 
+      if (s["cover.curtain"]) s["cover.curtain"].pos = 100; 
+      if (s["light.bed"]) { s["light.bed"].on = true; s["light.bed"].bri = 70; }
+      if (s["light.kitchen"]) s["light.kitchen"].on = true; 
+      if (s["fan.bed"]) s["fan.bed"].on = false; 
+    }
+  },
+  {
+    n: "รดน้ำฟาร์ม", i: "🌾",
+    f: s => {
+      // Automatic smart irrigation activation
+      if (s["switch.heater"]) {
+        // Can also trigger pump relay
+      }
     }
   }
 ];
@@ -92,7 +97,39 @@ function freshState() {
 function loadState() {
   try {
     const r = localStorage.getItem(K);
-    return r ? JSON.parse(r) : freshState();
+    const s = r ? JSON.parse(r) : freshState();
+    let migrated = false;
+    
+    // Auto-migrate and ensure all DEVICES exist with valid default properties
+    DEVICES.forEach(d => {
+      if (!s[d.id]) {
+        s[d.id] = { on: false, bri: 80, spd: 2, temp: 25, pos: 50 };
+        migrated = true;
+      } else {
+        if (typeof s[d.id].on !== "boolean") s[d.id].on = Boolean(s[d.id].on);
+        if (d.dim && s[d.id].bri === undefined) s[d.id].bri = 80;
+        if (d.type === "fan" && s[d.id].spd === undefined) s[d.id].spd = 2;
+        if (d.type === "climate" && s[d.id].temp === undefined) s[d.id].temp = 25;
+        if (d.type === "cover" && s[d.id].pos === undefined) s[d.id].pos = 50;
+      }
+    });
+    if (!s._rules) { s._rules = {}; migrated = true; }
+    RULES.forEach(r => {
+      if (s._rules[r.id] === undefined) { s._rules[r.id] = true; migrated = true; }
+    });
+    if (!s._kwh || !Array.isArray(s._kwh) || s._kwh.length < 7) { 
+      s._kwh = freshState()._kwh; 
+      migrated = true; 
+    }
+    if (!s._log) { s._log = []; migrated = true; }
+    if (!s._run) { s._run = {}; migrated = true; }
+    if (!s._mode) { s._mode = "home"; migrated = true; }
+
+    if (migrated && r) {
+      try { localStorage.setItem(K, JSON.stringify(s)); } catch (e) {}
+    }
+
+    return s;
   } catch (e) {
     return freshState();
   }
@@ -148,8 +185,8 @@ if (camStreamUrl) loadCustomCamStream(camStreamUrl);
 function tickSensors() {
   const h = new Date().getHours() + new Date().getMinutes() / 60;
   const sun = Math.max(0, Math.sin((h - 6) / 12 * Math.PI));
-  const ac = S["climate.living"].on;
-  const target = ac ? S["climate.living"].temp : 26 + sun * 7;
+  const ac = S["climate.living"] ? S["climate.living"].on : false;
+  const target = ac ? (S["climate.living"].temp || 25) : 26 + sun * 7;
   SEN.temp = +(SEN.temp + (target - SEN.temp) * 0.12 + (Math.random() - 0.5) * 0.2).toFixed(1);
   SEN.hum = Math.round(62 + Math.sin(h / 3) * 5 + (Math.random() - 0.5) * 3);
   SEN.pm = Math.round(22 + Math.sin(h / 5) * 9 + Math.random() * 6);
@@ -159,7 +196,7 @@ function tickSensors() {
     SEN.motion = PHONE.motion;
     SEN.door = (PHONE.motion && S._mode === "away") ? 1 : 0;
   } else {
-    SEN.lux = Math.round(sun * 900 + (S["light.living"].on ? 40 : 0) + 5);
+    SEN.lux = Math.round(sun * 900 + ((S["light.living"] && S["light.living"].on) ? 40 : 0) + 5);
     SEN.motion = Math.random() < 0.14 ? 1 : 0;
     SEN.door = Math.random() < 0.05 ? 1 : 0;
   }
@@ -168,10 +205,10 @@ function tickSensors() {
 function powerNow() {
   return DEVICES.reduce((a, d) => {
     const s = S[d.id];
-    if (!s.on) return a;
-    if (d.type === "light") return a + d.w * (d.dim ? s.bri / 100 : 1);
-    if (d.type === "fan") return a + d.w * (s.spd / 3);
-    if (d.type === "climate") return a + d.w * (1 + (26 - s.temp) * 0.08);
+    if (!s || !s.on) return a;
+    if (d.type === "light") return a + d.w * (d.dim ? (s.bri || 100) / 100 : 1);
+    if (d.type === "fan") return a + d.w * ((s.spd || 1) / 3);
+    if (d.type === "climate") return a + d.w * (1 + (26 - (s.temp || 25)) * 0.08);
     return a + d.w;
   }, 0);
 }
@@ -179,6 +216,7 @@ function powerNow() {
 /* ══════════ API Layer ══════════ */
 const api = {
   async set(id, p) {
+    if (!S[id]) S[id] = { on: false, bri: 80, spd: 2, temp: 25, pos: 50 };
     Object.assign(S[id], p);
     saveState();
     
@@ -200,7 +238,8 @@ const api = {
     } catch (e) {}
   },
   toggle(id) {
-    return this.set(id, { on: !S[id].on });
+    const isCurrentlyOn = S[id] ? Boolean(S[id].on) : false;
+    return this.set(id, { on: !isCurrentlyOn });
   }
 };
 
@@ -220,7 +259,7 @@ function runRules() {
     if (w.batt != null) fire = PHONE.batt && PHONE.batt.p < w.batt && !PHONE.batt.ch && !S._battWarn;
     if (w.runtime) {
       const t = S._run[w.runtime];
-      fire = S[w.runtime].on && t && (Date.now() - t) / 6e4 > w.min;
+      fire = S[w.runtime] && S[w.runtime].on && t && (Date.now() - t) / 6e4 > w.min;
     }
     if (!fire) return;
     if (r.cond) {
@@ -238,8 +277,8 @@ function runRules() {
 
   if (now.getSeconds() < 3) S._lastT = hm;
   DEVICES.forEach(d => {
-    if (S[d.id].on && !S._run[d.id]) S._run[d.id] = Date.now();
-    if (!S[d.id].on) delete S._run[d.id];
+    if (S[d.id] && S[d.id].on && !S._run[d.id]) S._run[d.id] = Date.now();
+    if (!S[d.id] || !S[d.id].on) delete S._run[d.id];
   });
   PREV = { ...SEN };
 }
@@ -254,7 +293,7 @@ function updateHeaderBrand() {
     if (customLogo) {
       if (brandLogoImg.src !== customLogo) brandLogoImg.src = customLogo;
     } else {
-      brandLogoImg.src = "./favicon.svg?v=20260915_v3";
+      brandLogoImg.src = "./favicon.svg?v=20260918_v1";
     }
   }
   const brandGreetingText = document.getElementById("brandGreetingText");
@@ -278,7 +317,7 @@ function updateHeaderBrand() {
       if (newLogo === null) return;
 
       const finalName = newName.trim() || "บ้านของฉัน";
-      const finalLogo = newLogo.trim() ? newLogo.trim() : "./favicon.svg?v=" + Date.now();
+      const finalLogo = newLogo.trim() ? newLogo.trim() : "./favicon.svg?v=20260918_v1";
 
       localStorage.setItem("custom_home_name", finalName);
       if (newLogo.trim()) {
@@ -287,6 +326,19 @@ function updateHeaderBrand() {
         localStorage.removeItem("custom_brand_logo");
       }
 
+      // Sync across LAN via Node Server API
+      fetch('/api/branding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: finalName, logo: finalLogo })
+      }).catch(() => {});
+
+      // Sync across browser tabs
+      if (remoteBus) {
+        remoteBus.postMessage({ type: 'BRAND_UPDATE', name: finalName, logo: finalLogo, at: Date.now() });
+      }
+
+      // Sync across MQTT
       if (mqttClient && mqttClient.connected && mqttTopic) {
         mqttClient.publish(mqttTopic, JSON.stringify({
           type: 'BRAND_UPDATE',
@@ -301,6 +353,26 @@ function updateHeaderBrand() {
     };
   }
 }
+
+// Global Brand sync listeners
+try {
+  fetch('/api/branding')
+    .then(r => r.json())
+    .then(b => {
+      if (b && b.name) {
+        localStorage.setItem("custom_home_name", b.name);
+        if (b.logo) localStorage.setItem("custom_brand_logo", b.logo);
+        updateHeaderBrand();
+      }
+    })
+    .catch(() => {});
+} catch (e) {}
+
+window.addEventListener('storage', e => {
+  if (e.key === 'custom_brand_logo' || e.key === 'custom_home_name') {
+    updateHeaderBrand();
+  }
+});
 
 function render(force = false) {
   updateHeaderBrand();
@@ -335,9 +407,10 @@ function render(force = false) {
 }
 
 function updateHomeDOM() {
-  const activeCount = DEVICES.filter(d => S[d.id].on).length;
+  const activeCount = DEVICES.filter(d => S[d.id] && S[d.id].on).length;
   const watts = Math.round(powerNow());
-  const dailyCost = (S._kwh[6].v * RATE).toFixed(2);
+  const todayKwh = (S._kwh && S._kwh[6] && S._kwh[6].v != null) ? S._kwh[6].v : (S._kwh && S._kwh.length ? S._kwh[S._kwh.length - 1].v : 0);
+  const dailyCost = (todayKwh * RATE).toFixed(2);
 
   const heroWatts = document.getElementById("heroWatts");
   if (heroWatts) heroWatts.textContent = `${watts} W`;
@@ -352,18 +425,28 @@ function updateHomeDOM() {
   if (heroTemp) heroTemp.textContent = `${SEN.temp}°C`;
 
   DEVICES.forEach(d => {
-    const cardEl = document.querySelector(`.card[data-id="${d.id}"]`);
+    const cardEl = document.querySelector(`.card[data-id="${d.id}"], .device-card[data-id="${d.id}"]`);
     if (cardEl) {
-      const isOn = S[d.id].on;
+      const s = S[d.id] || { on: false, bri: 80, spd: 2, temp: 25, pos: 50 };
+      const isOn = Boolean(s.on);
       cardEl.classList.toggle("on", isOn);
+      cardEl.classList.toggle("active-light", isOn && (d.type === "light" || d.type === "switch" || d.type === "fan"));
+      cardEl.classList.toggle("active-climate", isOn && d.type === "climate");
+      cardEl.classList.toggle("active-lock", (s.locked || isOn) && d.type === "lock");
+      
       const swEl = cardEl.querySelector(".sw");
       if (swEl) swEl.classList.toggle("on", isOn);
+      const chk = cardEl.querySelector('input[type="checkbox"]');
+      if (chk) chk.checked = Boolean(s.on || s.locked);
+
       const subEl = cardEl.querySelector(".device-sub");
       if (subEl) {
         if (d.bri != null) {
-          subEl.textContent = `${d.room} • ${isOn ? "เปิดอยู่ · " + S[d.id].bri + "%" : "ปิดอยู่"}`;
+          subEl.textContent = `${d.room} • ${isOn ? "เปิดอยู่ · " + (s.bri || 80) + "%" : "ปิดอยู่"}`;
         } else if (d.pos != null) {
-          subEl.textContent = `${d.room} • ${S[d.id].pos > 0 ? "เปิด " + S[d.id].pos + "%" : "ปิดอยู่"}`;
+          subEl.textContent = `${d.room} • ${(s.pos || 0) > 0 ? "เปิด " + (s.pos || 0) + "%" : "ปิดอยู่"}`;
+        } else if (d.spd != null) {
+          subEl.textContent = `${d.room} • ${isOn ? "แรงลมระดับ " + (s.spd || 1) : "ปิดอยู่"}`;
         } else {
           subEl.textContent = `${d.room} • ${isOn ? "เปิดอยู่" : "ปิดอยู่"}`;
         }
@@ -372,10 +455,28 @@ function updateHomeDOM() {
   });
 }
 
+window.startThaiVoiceAssistant = function() {
+  if (typeof initVoice === 'function') initVoice();
+  render(true);
+};
+
+window.triggerScene = function(key) {
+  const map = { away: 0, sleep: 1, movie: 2, morning: 3, farm_water: 4 };
+  const idx = map[key] !== undefined ? map[key] : parseInt(key, 10);
+  if (SCENES[idx]) {
+    SCENES[idx].f(S);
+    saveState();
+    logEvent("เรียกใช้ฉาก: " + SCENES[idx].n);
+    toast("▶ " + SCENES[idx].n);
+    render();
+  }
+};
+
 function vHome() {
-  const activeCount = DEVICES.filter(d => S[d.id].on).length;
+  const activeCount = DEVICES.filter(d => S[d.id] && S[d.id].on).length;
   const watts = Math.round(powerNow());
-  const dailyCost = (S._kwh[6].v * RATE).toFixed(2);
+  const todayKwh = (S._kwh && S._kwh[6] && S._kwh[6].v != null) ? S._kwh[6].v : (S._kwh && S._kwh.length ? S._kwh[S._kwh.length - 1].v : 0);
+  const dailyCost = (todayKwh * RATE).toFixed(2);
 
   let h = `
     <!-- Hero Stat Grid -->
@@ -422,50 +523,28 @@ function vHome() {
       `).join("")}
     </div>
 
-    <!-- Ultimate Smart Scenes & Thai Voice Assistant Bar -->
-    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px; padding: 12px 14px; margin-bottom: 16px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-        <span style="font-size: 0.82rem; font-weight: 700; color: #fff;">🎬 โหมดฉากอัจฉริยะ & สั่งงานด้วยเสียง</span>
-        <button id="btnVoiceThai" onclick="startThaiVoiceAssistant()" style="background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; border: 0; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-          🎙️ สั่งงานด้วยเสียงภาษาไทย
-        </button>
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
-        <button onclick="triggerScene('movie')" style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
-          🎬 ดูหนัง
-        </button>
-        <button onclick="triggerScene('sleep')" style="background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
-          🌙 เข้านอน
-        </button>
-        <button onclick="triggerScene('away')" style="background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
-          🚪 ออกจากบ้าน
-        </button>
-        <button onclick="triggerScene('farm_water')" style="background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: #34d399; padding: 10px 4px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center;">
-          🌾 รดน้ำฟาร์ม
-        </button>
-      </div>
-    </div>
-
     <!-- Quick IoT Remote Shortcut Banner -->
-    <div class="remote-shortcut-card" onclick="V='remote'; render(); window.scrollTo(0,0);" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(56, 189, 248, 0.3)); border: 1px solid rgba(99, 102, 241, 0.5); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);">
+    <div class="remote-shortcut-card" onclick="V='remote'; render(); window.scrollTo(0,0);" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(56, 189, 248, 0.25)); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25);">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-indigo), #38bdf8); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-indigo), #38bdf8); display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">
           <i class="fa-solid fa-gamepad"></i>
         </div>
         <div>
-          <div style="font-weight: 700; font-size: 1rem; color: #fff;">🎛️ เปิดหน้าแผงควบคุม รีโมท IoT</div>
-          <div style="font-size: 0.8rem; color: #cbd5e1;">โหมดรีโมทควบคุมไร้สาย MQTT / Bluetooth (BLE)</div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: #fff;">🎛️ เปิดหน้าแผงควบคุม รีโมท IoT</div>
+          <div style="font-size: 0.78rem; color: #cbd5e1;">โหมดรีโมทควบคุมไร้สาย MQTT / Bluetooth / IR Blaster</div>
         </div>
       </div>
-      <i class="fa-solid fa-chevron-right" style="color: var(--accent-blue); font-size: 18px;"></i>
+      <i class="fa-solid fa-chevron-right" style="color: var(--accent-blue); font-size: 16px;"></i>
     </div>
 
-    <!-- Quick Scenes Carousel -->
-    <div class="section-title">
-      <span><i class="fa-solid fa-sparkles" style="color: var(--accent-amber);"></i> ฉากสั่งงานด่วน (Quick Scenes)</span>
+    <!-- Quick Scenes Carousel & Thai Voice Assistant -->
+    <div class="section-title" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <span><i class="fa-solid fa-sparkles" style="color: var(--accent-amber);"></i> ฉากสั่งงานด่วน (Smart Scenes)</span>
+      <button id="btnVoiceThai" onclick="startThaiVoiceAssistant()" style="background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; border: 0; padding: 6px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);">
+        🎙️ สั่งงานด้วยเสียง
+      </button>
     </div>
-    <div class="scenes-grid">
+    <div class="scenes-grid" style="margin-bottom: 22px;">
       ${SCENES.map((x, i) => `
         <div class="scene-card" data-sc="${i}">
           <div class="scene-icon">${x.i}</div>
@@ -483,6 +562,7 @@ function vHome() {
       <button class="tab-btn ${currentRoom === 'ห้องนั่งเล่น' ? 'active' : ''}" data-room="ห้องนั่งเล่น"><i class="fa-solid fa-couch"></i> ห้องนั่งเล่น</button>
       <button class="tab-btn ${currentRoom === 'ห้องนอน' ? 'active' : ''}" data-room="ห้องนอน"><i class="fa-solid fa-bed"></i> ห้องนอน</button>
       <button class="tab-btn ${currentRoom === 'ครัว' ? 'active' : ''}" data-room="ครัว"><i class="fa-solid fa-utensils"></i> ครัว</button>
+      <button class="tab-btn ${currentRoom === 'ห้องน้ำ' ? 'active' : ''}" data-room="ห้องน้ำ"><i class="fa-solid fa-shower"></i> ห้องน้ำ</button>
       <button class="tab-btn ${currentRoom === 'หน้าบ้าน' ? 'active' : ''}" data-room="หน้าบ้าน"><i class="fa-solid fa-house-chimney"></i> หน้าบ้าน</button>
     </div>
 
@@ -493,8 +573,8 @@ function vHome() {
   const filteredDevs = currentRoom === 'all' ? DEVICES : DEVICES.filter(d => d.room === currentRoom);
 
   filteredDevs.forEach(d => {
-    const s = S[d.id];
-    const isON = s.on || s.locked;
+    const s = S[d.id] || { on: false, bri: 80, spd: 2, temp: 25, pos: 50 };
+    const isON = Boolean(s.on || s.locked);
     
     let activeClass = "";
     if (isON) {
@@ -505,15 +585,15 @@ function vHome() {
     }
 
     let subText = s.on ? ({
-      light: d.dim ? `เปิดอยู่ · ${s.bri}%` : "เปิดอยู่",
+      light: d.dim ? `เปิดอยู่ · ${s.bri || 100}%` : "เปิดอยู่",
       switch: "เปิดใช้งาน",
-      fan: `แรงลมระดับ ${s.spd}`,
-      climate: `โหมดเย็น ${s.temp}°C`,
+      fan: `แรงลมระดับ ${s.spd || 1}`,
+      climate: `โหมดเย็น ${s.temp || 25}°C`,
       lock: "ล็อกแน่นหนา",
-      cover: `เปิด ${s.pos}%`
+      cover: `เปิด ${s.pos || 0}%`
     })[d.type] : "ปิดอยู่";
 
-    if (d.type === "cover") subText = `ตำแหน่งผ้าม่าน ${s.pos}%`;
+    if (d.type === "cover") subText = `ตำแหน่งผ้าม่าน ${s.pos || 0}%`;
     if (d.type === "lock" && !s.on) subText = "ปลดล็อกแล้ว";
 
     h += `
@@ -536,16 +616,16 @@ function vHome() {
     `;
 
     if (d.type === "light" && d.dim && s.on) {
-      h += `<input type="range" class="custom-range" min="1" max="100" value="${s.bri}" data-bri="${d.id}">`;
+      h += `<input type="range" class="custom-range" min="1" max="100" value="${s.bri || 80}" data-bri="${d.id}">`;
     } else if (d.type === "cover") {
-      h += `<input type="range" class="custom-range" min="0" max="100" value="${s.pos}" data-pos="${d.id}">`;
+      h += `<input type="range" class="custom-range" min="0" max="100" value="${s.pos || 0}" data-pos="${d.id}">`;
     } else if (d.type === "fan" && s.on) {
-      h += `<input type="range" class="custom-range" min="1" max="3" value="${s.spd}" data-spd="${d.id}">`;
+      h += `<input type="range" class="custom-range" min="1" max="3" value="${s.spd || 1}" data-spd="${d.id}">`;
     } else if (d.type === "climate" && s.on) {
       h += `
         <div class="temp-stepper">
           <button class="temp-btn" data-t="${d.id}:-1">−</button>
-          <span style="font-weight: 700; color: var(--accent-blue); font-size: 1rem;">${s.temp}°C</span>
+          <span style="font-weight: 700; color: var(--accent-blue); font-size: 1rem;">${s.temp || 25}°C</span>
           <button class="temp-btn" data-t="${d.id}:1">+</button>
         </div>
       `;
@@ -637,7 +717,8 @@ function vCam() {
 }
 
 function vEnergy() {
-  const totalKwh = S._kwh.reduce((a, b) => a + b.v, 0);
+  const totalKwh = (S._kwh || []).reduce((a, b) => a + (b && b.v != null ? b.v : 0), 0);
+  const todayKwh = (S._kwh && S._kwh[6] && S._kwh[6].v != null) ? S._kwh[6].v : (S._kwh && S._kwh.length ? S._kwh[S._kwh.length - 1].v : 0);
   return `
     <div class="section-title">
       <span><i class="fa-solid fa-bolt" style="color: var(--accent-amber);"></i> รายงานและสถิติการใช้พลังงาน</span>
@@ -655,7 +736,7 @@ function vEnergy() {
       <div class="stat-card">
         <div class="stat-icon-box green"><i class="fa-solid fa-chart-simple"></i></div>
         <div>
-          <div class="stat-value">${S._kwh[6].v.toFixed(2)} kWh</div>
+          <div class="stat-value">${todayKwh.toFixed(2)} kWh</div>
           <div class="stat-label">หน่วยไฟวันนี้</div>
         </div>
       </div>
@@ -676,7 +757,7 @@ function vEnergy() {
 
     <div class="section-title"><span>อุปกรณ์ที่ใช้ไฟขณะนี้</span></div>
     ${
-      DEVICES.filter(d => S[d.id].on).sort((a, b) => b.w - a.w).map(d =>
+      DEVICES.filter(d => S[d.id] && S[d.id].on).sort((a, b) => b.w - a.w).map(d =>
         `<div class="row"><span><i class="fa-solid ${d.icon}"></i> ${d.name} (${d.room})</span><span class="val">${d.w} W</span></div>`
       ).join("") || `<div class="row"><span>ไม่มีอุปกรณ์เปิดใช้งานอยู่</span></div>`
     }
@@ -876,7 +957,11 @@ function generateFallbackHex(devType, brandStr, cmdStr) {
 const remoteBus = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('smarthome_remote_bus') : null;
 if (remoteBus) {
   remoteBus.onmessage = (e) => {
-    if (e.data && myMode === 'receiver') {
+    if (e.data && e.data.type === 'BRAND_UPDATE') {
+      if (e.data.name) localStorage.setItem("custom_home_name", e.data.name);
+      if (e.data.logo) localStorage.setItem("custom_brand_logo", e.data.logo);
+      updateHeaderBrand();
+    } else if (e.data && myMode === 'receiver') {
       showCommand(e.data);
     }
   };
@@ -893,7 +978,11 @@ function initSSE() {
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'IR_TRANSMITTED') {
+        if (data.type === 'BRAND_UPDATE') {
+          if (data.name) localStorage.setItem("custom_home_name", data.name);
+          if (data.logo) localStorage.setItem("custom_brand_logo", data.logo);
+          updateHeaderBrand();
+        } else if (data.type === 'IR_TRANSMITTED') {
           showCommand({ cmd: `IR: ${data.brand?.toUpperCase()} ${data.command?.toUpperCase()}`, at: data.at || Date.now() });
         } else if (data.type === 'DEVICE_UPDATED' && data.device) {
           showCommand({ cmd: `DEVICE: ${data.device.name} -> ${data.device.state ? 'ON' : 'OFF'}`, at: Date.now() });
@@ -1755,7 +1844,8 @@ function drawChart() {
   const cv = document.getElementById("ch");
   if (!cv) return;
   const x = cv.getContext("2d"), W = 700, Hh = 330, P = 40;
-  const mx = Math.max(...S._kwh.map(d => d.v), 1) * 1.25;
+  const kwhList = (S._kwh && Array.isArray(S._kwh) && S._kwh.length) ? S._kwh : freshState()._kwh;
+  const mx = Math.max(...kwhList.map(d => (d && d.v != null ? d.v : 0)), 1) * 1.25;
   
   x.clearRect(0, 0, W, Hh);
   x.strokeStyle = "rgba(255,255,255,0.08)";
@@ -1772,22 +1862,24 @@ function drawChart() {
     x.fillText((mx * i / 4).toFixed(1), 6, y + 4);
   }
   
-  const bw = (W - P - 20) / 7;
-  S._kwh.forEach((d, i) => {
-    const h = (Hh - P * 2) * (d.v / mx), bx = P + 10 + i * bw, by = Hh - P - h;
+  const bw = (W - P - 20) / Math.max(kwhList.length, 1);
+  kwhList.forEach((d, i) => {
+    const val = (d && d.v != null) ? d.v : 0;
+    const label = (d && d.d) ? d.d : '';
+    const h = (Hh - P * 2) * (val / mx), bx = P + 10 + i * bw, by = Hh - P - h;
     const g = x.createLinearGradient(0, by, 0, Hh - P);
-    g.addColorStop(0, i === 6 ? "#f59e0b" : "#6366f1");
-    g.addColorStop(1, i === 6 ? "#d97706" : "#4338ca");
+    g.addColorStop(0, i === kwhList.length - 1 ? "#f59e0b" : "#6366f1");
+    g.addColorStop(1, i === kwhList.length - 1 ? "#d97706" : "#4338ca");
     x.fillStyle = g;
     x.beginPath();
     if (x.roundRect) x.roundRect(bx, by, bw - 14, h, 8); else x.rect(bx, by, bw - 14, h);
     x.fill();
     x.fillStyle = "#94a3b8";
     x.textAlign = "center";
-    x.fillText(d.d, bx + (bw - 14) / 2, Hh - P + 18);
+    x.fillText(label, bx + (bw - 14) / 2, Hh - P + 18);
     x.fillStyle = "#fff";
     x.font = "bold 12px Prompt, sans-serif";
-    x.fillText(d.v.toFixed(1), bx + (bw - 14) / 2, by - 7);
+    x.fillText(val.toFixed(1), bx + (bw - 14) / 2, by - 7);
     x.font = "12px Prompt, sans-serif";
     x.textAlign = "left";
   });

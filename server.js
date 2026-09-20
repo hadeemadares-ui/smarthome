@@ -218,6 +218,43 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Branding Sync API (Persisted across LAN and broadcasted live via SSE)
+  if (pathname === '/api/branding') {
+    const BRAND_FILE = path.join(__dirname, 'branding.json');
+    if (req.method === 'GET') {
+      let bData = { name: 'บ้านของฉัน', logo: './favicon.svg?v=20260915_v3' };
+      try {
+        if (fs.existsSync(BRAND_FILE)) bData = JSON.parse(fs.readFileSync(BRAND_FILE, 'utf8'));
+      } catch (e) {}
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(bData));
+      return;
+    }
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', () => {
+        try {
+          const { name, logo } = JSON.parse(body);
+          let bData = { name: name || 'บ้านของฉัน', logo: logo || './favicon.svg?v=20260915_v3' };
+          try { fs.writeFileSync(BRAND_FILE, JSON.stringify(bData, null, 2)); } catch (e) {}
+          
+          // Broadcast to all connected clients via SSE
+          const sseMsg = `data: ${JSON.stringify({ type: 'BRAND_UPDATE', name: bData.name, logo: bData.logo })}\n\n`;
+          for (const client of clients) {
+            try { client.write(sseMsg); } catch (e) {}
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, branding: bData }));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, message: 'Invalid JSON' }));
+        }
+      });
+      return;
+    }
+  }
+
   // --- Static Files Serving ---
   let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
   
